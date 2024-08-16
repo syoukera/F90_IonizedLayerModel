@@ -3,9 +3,9 @@ program solve_electric_potential
     implicit none
     ! integer, parameter :: nx = 101
     integer :: i, k
-    integer :: max_iter = 10000
-    ! real(8) :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
-    real(8) :: V_old(nx), error
+    integer, parameter :: max_iter = 10000
+    ! double precision :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
+    double precision :: V_old(nx), error
 
     ! 初期条件と境界条件の設定
     V = 0.0d0
