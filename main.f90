@@ -1,33 +1,21 @@
 program main
     use variables_module
     implicit none
-    ! integer, parameter :: nx = 101
     integer :: i, k
-    integer, parameter :: max_iter = 10000
-    ! double precision :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
-    ! double precision :: V_old(nx), error
-    ! double precision :: rho(nx) ! density of electric charge [C/m3]
 
     call initialize_variables()
 
-    ! solve poison equation by SOR method
+    ! iteration by SOR method
     do k = 1, max_iter
-
-        call solve_poisson_equation()
 
         ! calclate density of electric charge
         do i = 1, nx
             rho(i) = (n_pos(i) - n_neg(i) - n_neg(i))*q_e
         end do
 
-        ! V_old = V
-        ! do i = 2, nx-1
-        !     V(i) = (1.0d0 - omega) * V(i) + omega * 0.5d0 * &
-        !             (V(i+1) + V(i-1) + dx*dx*rho(i)/epsilon_0)
-        ! end do
+        call solve_poisson_equation()
 
         ! check convergence
-        ! error = maxval(abs(V - V_old))
         if (error < tolerance) then
             print *, 'Converged after ', k, ' iterations.'
             exit
