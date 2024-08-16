@@ -1,15 +1,18 @@
 program solve_electric_potential
+    use variables_module
   implicit none
-  integer, parameter :: nx = 101
-  integer :: i, k, max_iter
-  real(8) :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
+!   integer, parameter :: nx = 101
+  integer :: i, k
+  integer :: max_iter = 10000
+!   real(8) :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
+  real(8) :: V_old(nx), error
 
   ! パラメータの設定
-  dx = 1.0d-2   ! x方向の格子間隔
-  max_iter = 10000
-  tolerance = 1.0d-6
-  omega = 1.8d0    ! 過緩和係数 (1 < omega < 2)
-  epsilon_0 = 8.854187817d-12  ! 真空の誘電率
+!   dx = 1.0d-2   ! x方向の格子間隔
+!   max_iter = 10000
+!   tolerance = 1.0d-6
+!   omega = 1.8d0    ! 過緩和係数 (1 < omega < 2)
+!   epsilon_0 = 8.854187817d-12  ! 真空の誘電率
 
   ! 初期条件と境界条件の設定
   V = 0.0d0

@@ -1,2 +1,5 @@
 a.out
 *.dat
+solve_electric_potential
+*.o
+*.mod
