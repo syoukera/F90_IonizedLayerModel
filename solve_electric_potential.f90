@@ -7,13 +7,19 @@ program solve_electric_potential
     ! double precision :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
     double precision :: V_old(nx), error
 
-    ! 初期条件と境界条件の設定
-    V = 0.0d0
-    rho = 0.0d0
+    call initialize_variables()
 
-    ! 例として、中央に正負の電荷を配置
-    rho(nx/2) = 1.0d-6
-    rho(nx/2+1) = -1.0d-6
+    ! ! 初期条件と境界条件の設定
+    ! V = 0.0d0
+    ! rho = 0.0d0
+
+    ! do i = 1, nx
+    !     rho(i) = max(exp(- pi*(x - H)/alpha**2), 0.0)
+    ! end do
+
+    ! ! 例として、中央に正負の電荷を配置
+    ! rho(nx/2) = 1.0d-6
+    ! rho(nx/2+1) = -1.0d-6
 
     ! SOR法でポアソン方程式を解く
     do k = 1, max_iter
@@ -37,8 +43,9 @@ program solve_electric_potential
 
     ! 結果を出力 (簡易出力)
     open(unit=1, file='potential_1d.dat', status='replace')
+    write(1,*) "X[m] rho[C/m3] V[V]"
     do i = 1, nx
-        write(1,*) i*dx, V(i)
+        write(1,*) i*dx, rho(i), V(i)
     end do
     close(1)
 
