@@ -3,8 +3,8 @@ FC = gfortran
 FFLAGS = -O2 -Wall
 
 # ターゲット名とオブジェクトファイル
-TARGET = solve_ionized_layer
-OBJS = main.o variables_module.o solve_poisson_equation.o
+TARGET = ionized_layer
+OBJS = main.o variables_module.o solve_poisson_equation.o solve_ion_conservation.o
 
 # デフォルトターゲット
 all: $(TARGET)
@@ -24,6 +24,10 @@ solve_poisson_equation.o: solve_poisson_equation.f90 variables_module.o
 # メインプログラムのコンパイル
 main.o: main.f90 variables_module.o
 	$(FC) $(FFLAGS) -c main.f90
+
+# メインプログラムのコンパイル
+solve_ion_conservation.o: solve_ion_conservation.f90 variables_module.o
+	$(FC) $(FFLAGS) -c solve_ion_conservation.f90
 
 # クリーンアップターゲット
 clean:

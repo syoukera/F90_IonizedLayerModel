@@ -15,6 +15,8 @@ program main
 
         call solve_poisson_equation()
 
+        call solve_ion_pos_conservation()
+
         ! check convergence
         if (error < tolerance) then
             print *, 'Converged after ', k, ' iterations.'
