@@ -4,7 +4,7 @@ FFLAGS = -O2 -Wall
 
 # ターゲット名とオブジェクトファイル
 TARGET = solve_electric_potential
-OBJS = variables_module.o solve_electric_potential.o
+OBJS = main.o variables_module.o solve_electric_potential.o
 
 # デフォルトターゲット
 all: $(TARGET)
@@ -20,6 +20,10 @@ variables_module.o: variables_module.f90
 # メインプログラムのコンパイル
 solve_electric_potential.o: solve_electric_potential.f90 variables_module.o
 	$(FC) $(FFLAGS) -c solve_electric_potential.f90
+
+# メインプログラムのコンパイル
+main.o: main.f90 variables_module.o
+	$(FC) $(FFLAGS) -c main.f90
 
 # クリーンアップターゲット
 clean:

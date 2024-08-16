@@ -3,7 +3,7 @@ module variables_module
 
     ! parameters for grid
     integer, parameter :: nx = 101
-    double precision, parameter :: dx        = 1.0d-3 ! distance between grid points [m]
+    double precision, parameter :: dx        = 1.0d-4 ! distance between grid points [m]
     double precision, parameter :: length_x  = (nx-1)*dx ! length of calclation domain [m]
     
     ! parameters for Gaussian profile
@@ -20,6 +20,7 @@ module variables_module
     ! parameters for computation
     double precision, parameter :: tolerance = 1.0d-6
     double precision, parameter :: omega     = 1.8d0 ! relaxation coefficient (1 < omega < 2)
+    double precision :: error
 
     ! set variables arrays
     double precision :: X(nx) ! position of eac grid point [m]
@@ -27,7 +28,7 @@ module variables_module
     double precision :: n_pos(nx) ! number density of positive ions [m-3]
     double precision :: n_neg(nx) ! number density of negative ions [m-3]
     double precision :: n_ele(nx) ! number density of electrons [m-3]
-    ! double precision :: rho(nx) ! density of electric charge
+    double precision :: rho(nx) ! density of electric charge [C/m3]
 
     contains
 
@@ -37,7 +38,7 @@ module variables_module
         do i = 1, nx
             X(i) = (i-1) * dx
             ! rho(i) = 0.0d0
-            n_pos(i) = 1.0d14*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
+            n_pos(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
         end do
 
         ! set boundary on V
