@@ -6,10 +6,16 @@ program solve_electric_potential
     integer, parameter :: max_iter = 10000
     ! double precision :: V(nx), rho(nx), V_old(nx), dx, tolerance, omega, error, epsilon_0
     double precision :: V_old(nx), error
+    double precision :: rho(nx) ! density of electric charge [C/m3]
 
     call initialize_variables()
 
-    ! SOR法でポアソン方程式を解く
+    ! calclate density of electric charge
+    do i = 1, nx
+        rho(i) = (n_pos(i) - n_neg(i) - n_neg(i))*q_e
+    end do
+
+    ! solve poison equation by SOR method
     do k = 1, max_iter
         V_old = V
         do i = 2, nx-1
@@ -17,7 +23,7 @@ program solve_electric_potential
                     (V(i+1) + V(i-1) + dx*dx*rho(i)/epsilon_0)
         end do
 
-        ! 収束チェック
+        ! check convergence
         error = maxval(abs(V - V_old))
         if (error < tolerance) then
             print *, 'Converged after ', k, ' iterations.'
@@ -29,7 +35,7 @@ program solve_electric_potential
         print *, 'Did not converge after ', max_iter, ' iterations.'
     end if
 
-    ! 結果を出力 (簡易出力)
+    ! output
     open(unit=1, file='potential_1d.dat', status='replace')
     write(1,*) "X[m] rho[C/m3] V[V]"
     do i = 1, nx
