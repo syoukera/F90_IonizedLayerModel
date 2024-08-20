@@ -6,15 +6,32 @@ subroutine solve_ion_pos_conservation
     ! real(8), intent(in) :: dx, dt
     ! real(8), dimension(nx), intent(inout) :: n_plus, n_minus, V
     integer :: i
-    real(8), dimension(nx) :: n_pos_old, n_pos_old
+    real(8), dimension(nx) :: n_pos_old 
+    real(8) :: g ! spacial profile of ionization
+    real(8) :: a, b, c, d ! coefficients of discretised eq.
 
+    ! store old value
     n_pos_old = n_pos
-    n_neg_old = n_neg
 
-    ! イオン保存式の解法（陽解法の例）
+    ! solve coservation equation
     do i = 2, nx-1
-        n_plus(i) = n_plus_old(i) - dt/dx * (n_plus_old(i) * (V(i+1) - V(i-1)) / (2.0d0*dx))
-        n_minus(i) = n_minus_old(i) + dt/dx * (n_minus_old(i) * (V(i+1) - V(i-1)) / (2.0d0*dx))
+
+        ! calclate spacial profile of ionization
+        g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
+
+        ! calclate coefficients of discretised eq.
+        a = 2.0*D_pos/dx**2  - (K_pos/dx**2)*(V(i+1) - 2.0*V(i) + V(i-1)) &
+             + k_r*(n_ele(i) + n_neg(i))
+        b = D_pos/dx**2 + (K_pos/dx**2)*(V(i+1) - V(i-1))
+        c = D_pos/dx**2 - (K_pos/dx**2)*(V(i+1) - V(i-1))
+        d = k_i*g
+
+        ! calclate next n_pos(i) using SOR-method
+        n_pos(i) = (1.0d0 - omega_pos)*n_pos(i) &
+                 + omega_pos*(1.0/a)*(b*n_pos(i+1) + c*n_pos(i-1) + d)
+
     end do
+
+    error = error + maxval(abs(n_pos - n_pos_old))
 
 end subroutine solve_ion_pos_conservation
