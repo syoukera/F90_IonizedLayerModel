@@ -19,9 +19,9 @@ program main
 
         call update_electric_field()
 
-        ! call solve_ion_pos_conservation()
+        call solve_ion_pos_conservation()
 
-        print *, 'step ', i, ' error: ', error
+        print *, 'step ', k, ' error: ', error
 
         ! check convergence
         if (error < tolerance) then

@@ -3,3 +3,4 @@ a.out
 *.o
 *.mod
 ionized_layer
+log.*

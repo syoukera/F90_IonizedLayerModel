@@ -19,11 +19,19 @@ subroutine solve_ion_pos_conservation
         ! calclate spacial profile of ionization
         g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
 
-        ! calclate coefficients of discretised eq.
-        a = 2.0*D_pos/dx**2  - (K_pos/dx**2)*(V(i+1) - 2.0*V(i) + V(i-1)) &
-             + k_r*(n_ele(i) + n_neg(i))
-        b = D_pos/dx**2 + (K_pos/dx**2)*(V(i+1) - V(i-1))
-        c = D_pos/dx**2 - (K_pos/dx**2)*(V(i+1) - V(i-1))
+        ! upwind difference
+        if (E(i) .ge. 0.0) then
+            ! calclate coefficients of discretised eq.
+            a = 2.0*D_pos/dx**2  + (K_pos/dx)*E(i) + k_r*(n_ele(i) + n_neg(i))
+            b = D_pos/dx**2
+            c = D_pos/dx**2 + (K_pos/dx)*E(i-1)
+        else
+            ! calclate coefficients of discretised eq.
+            a = 2.0*D_pos/dx**2  - (K_pos/dx)*E(i) + k_r*(n_ele(i) + n_neg(i))
+            b = D_pos/dx**2 - (K_pos/dx)*E(i-1)
+            c = D_pos/dx**2
+        endif
+
         d = k_i*g
 
         ! calclate next n_pos(i) using SOR-method

@@ -34,10 +34,10 @@ module variables_module
     double precision, parameter :: V_end        = 1.0d3 ! voltage for end point [V]
 
     ! parameters for computation
-    integer, parameter :: max_iter = 10000
+    integer, parameter :: max_iter = 1000000
     double precision, parameter :: tolerance = 1.0d-6
-    double precision, parameter :: omega_V   = 1.8d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 1.8d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_V   = 1.0d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 1.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_neg = 1.8d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_ele = 1.8d0 ! relaxation coefficient (1 < omega < 2)
     double precision :: error
