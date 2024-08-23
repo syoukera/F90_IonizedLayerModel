@@ -17,7 +17,9 @@ program main
 
         call solve_poisson_equation()
 
-        call solve_ion_pos_conservation()
+        call update_electric_field()
+
+        ! call solve_ion_pos_conservation()
 
         print *, 'step ', i, ' error: ', error
 
@@ -35,9 +37,9 @@ program main
 
     ! output
     open(unit=1, file='potential_1d.dat', status='replace')
-    write(1,*) "X[m] rho[C/m3] V[V] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3]"
+    write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3]"
     do i = 1, nx
-        write(1,*) i*dx, rho(i), V(i), n_pos(i), n_neg(i), n_ele(i)
+        write(1,*) i*dx, rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
     end do
     close(1)
 

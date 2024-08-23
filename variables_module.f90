@@ -45,6 +45,7 @@ module variables_module
     ! set variables arrays
     double precision :: X(nx) ! position of eac grid point [m]
     double precision :: V(nx) ! electric potential [V]
+    double precision :: E(nx) ! electric field [V/m]
     double precision :: n_pos(nx) ! number density of positive ions [m-3]
     double precision :: n_neg(nx) ! number density of negative ions [m-3]
     double precision :: n_ele(nx) ! number density of electrons [m-3]
@@ -72,7 +73,20 @@ module variables_module
         do i = 2, nx-1
             V(i) = 0.0d0
         end do
-        
-    end subroutine
+
+    end subroutine initialize_variables
+
+    subroutine update_electric_field()
+        integer :: i
+
+        ! calclate electric field (E = -dV/dx)
+        do i = 2, nx-1
+        E(i) = -(V(i+1) - V(i-1)) / (2.0d0 * dx)
+        end do
+
+        ! boundary conditions
+        E(1) = -(V(2) - V(1)) / dx
+        E(nx) = -(V(nx) - V(nx-1)) / dx
+    end subroutine update_electric_field
 
 end module variables_module
