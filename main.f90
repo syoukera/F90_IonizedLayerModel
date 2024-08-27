@@ -21,6 +21,8 @@ program main
 
         call solve_ion_pos_conservation()
 
+        call solve_ion_neg_conservation()
+
         print *, 'step ', k, ' error: ', error
 
         ! check convergence

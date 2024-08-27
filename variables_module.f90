@@ -22,6 +22,7 @@ module variables_module
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
     double precision, parameter :: K_ele = 0.4d0  ! mobility of electrons [m2/s V]
+    double precision, parameter :: alpha = 0.0  ! ratio of electrons among the negatively charges species [0-1]
     double precision, parameter :: T = 298d0  ! temperature [K]
 
     ! diffusion coefficients is drived from Einstein Eq.
@@ -30,16 +31,16 @@ module variables_module
     double precision, parameter :: D_ele = K_ele*k_B*T/q_e ! diffusion coefficients of electrons [m2/s]
     
     ! parameters for boundary conditions
-    double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
-    double precision, parameter :: V_end        = 1.0d3 ! voltage for end point [V]
+    double precision, parameter :: V_start      = 1.0d3 ! valtage for initial point [V]
+    double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
 
     ! parameters for computation
     integer, parameter :: max_iter = 1000000
     double precision, parameter :: tolerance = 1.0d-6
     double precision, parameter :: omega_V   = 1.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_pos = 1.0d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 1.8d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_ele = 1.8d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 1.0d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_ele = 1.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision :: error
 
     ! set variables arrays
@@ -61,7 +62,7 @@ module variables_module
             ! rho(i) = 0.0d0
             ! n_pos(i) = 0.0d0
             n_pos(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
-            n_neg(i) = 0.0d0
+            n_neg(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
             n_ele(i) = 0.0d0
         end do
 
