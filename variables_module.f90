@@ -35,11 +35,11 @@ module variables_module
     double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
 
     ! parameters for computation
-    integer, parameter :: max_iter = 1000000
-    double precision, parameter :: tolerance = 1.0d-6
-    double precision, parameter :: omega_V   = 1.0d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 1.0d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 1.0d0 ! relaxation coefficient (1 < omega < 2)
+    integer, parameter :: max_iter = 2000000
+    double precision, parameter :: tolerance = 2.0d-6
+    double precision, parameter :: omega_V   = 2.0d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 0.005d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_ele = 1.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision :: error
 
@@ -52,6 +52,10 @@ module variables_module
     double precision :: n_ele(nx) ! number density of electrons [m-3]
     double precision :: rho(nx) ! density of electric charge [C/m3]
 
+    ! output variables
+    double precision :: current_density(nx) ! current density [A/m3]
+    double precision :: body_force(nx) ! electric body force [N]
+
     contains
 
     subroutine initialize_variables()
@@ -59,11 +63,12 @@ module variables_module
         
         do i = 1, nx
             X(i) = (i-1) * dx
-            ! rho(i) = 0.0d0
             ! n_pos(i) = 0.0d0
+            ! n_neg(i) = 0.0d0
             n_pos(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
             n_neg(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
             n_ele(i) = 0.0d0
+            rho(i) = (n_pos(i) - n_neg(i) - n_neg(i))*q_e
         end do
 
         ! set boundary on V
@@ -72,8 +77,10 @@ module variables_module
 
         ! set initial conditions of V
         do i = 2, nx-1
-            V(i) = 0.0d0
+            V(i) = V_start + (V_end - V_start)*((i-1.0)/(nx-1.0))
         end do
+
+        call update_electric_field()
 
     end subroutine initialize_variables
 
