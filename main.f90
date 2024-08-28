@@ -31,12 +31,27 @@ program main
             exit
         end if
 
+        if (mod(k, 1000000) == 0) then
+            call output(k)
+        end if
+
     end do
 
     if (k == max_iter) then
         print *, 'Did not converge after ', max_iter, ' iterations.'
     end if
 
+    call output(k)
+
+end program main
+
+subroutine output(k)
+    use variables_module
+    implicit none
+    integer, intent(in) :: k
+    integer :: i
+    character(len=30) :: filename
+    
     ! calculate current density
     do i = 2, nx-1
 
@@ -46,12 +61,16 @@ program main
 
     end do
 
+    
+    ! create a unique filename using the integer i
+    write(filename, '("potential_1d_", I0, ".dat")') k
+
     ! output
-    open(unit=1, file='potential_1d.dat', status='replace')
+    open(unit=1, file=filename, status='replace')
     write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3] j[A/m2]"
     do i = 1, nx
         write(1,*) i*dx, rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i), current_density(i)
     end do
     close(1)
 
-end program main
+end subroutine output
