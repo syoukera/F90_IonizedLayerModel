@@ -66,7 +66,7 @@ subroutine solve_ion_neg_conservation
         g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
 
         ! upwind difference
-        if (E(i) .ne. 0.0) then
+        if (E(i) .le. 0.0) then
             ! calclate coefficients of discretised eq.
             a = 2.0*D_neg/dx**2  - (K_neg/dx)*E(i) + k_r*n_pos(i)
             b = D_neg/dx**2
