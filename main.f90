@@ -31,9 +31,10 @@ program main
             exit
         end if
 
-        if (mod(k, 1000000) == 0) then
-            call output(k)
-        end if
+        ! ! output for fixed duration
+        ! if (mod(k, 1000000) == 0) then
+        !     call output(k)
+        ! end if
 
     end do
 
@@ -52,14 +53,14 @@ subroutine output(k)
     integer :: i
     character(len=30) :: filename
     
-    ! calculate current density
-    do i = 2, nx-1
+    ! ! calculate current density
+    ! do i = 2, nx-1
 
-        current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dx)) - K_pos*n_pos(i)*E(i))*(+q_e) &
-                           + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dx)) + K_neg*n_neg(i)*E(i))*(-q_e) &
-                           + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dx)) + K_ele*n_ele(i)*E(i))*(-q_e)
+    !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dx)) - K_pos*n_pos(i)*E(i))*(+q_e) &
+    !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dx)) + K_neg*n_neg(i)*E(i))*(-q_e) &
+    !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dx)) + K_ele*n_ele(i)*E(i))*(-q_e)
 
-    end do
+    ! end do
 
     
     ! create a unique filename using the integer i
@@ -67,9 +68,10 @@ subroutine output(k)
 
     ! output
     open(unit=1, file=filename, status='replace')
-    write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3] j[A/m2]"
+    write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3]"
     do i = 1, nx
-        write(1,*) i*dx, rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i), current_density(i)
+        write(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
+        ! write(1, '(E10.4)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
     end do
     close(1)
 
