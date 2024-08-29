@@ -28,7 +28,7 @@ subroutine solve_ion_pos_conservation
         else
             ! calclate coefficients of discretised eq.
             a = 2.0*D_pos/dx**2  - (K_pos/dx)*E(i) + k_r*(n_ele(i) + n_neg(i))
-            b = D_pos/dx**2 - (K_pos/dx)*E(i-1)
+            b = D_pos/dx**2 - (K_pos/dx)*E(i+1)
             c = D_pos/dx**2
         endif
 
@@ -74,7 +74,7 @@ subroutine solve_ion_neg_conservation
         else
             ! calclate coefficients of discretised eq.
             a = 2.0*D_neg/dx**2  + (K_neg/dx)*E(i) + k_r*n_pos(i)
-            b = D_neg/dx**2 + (K_neg/dx)*E(i-1)
+            b = D_neg/dx**2 + (K_neg/dx)*E(i+1)
             c = D_neg/dx**2
         endif
 
