@@ -3,13 +3,9 @@ program main
     implicit none
     integer :: i, k
 
-    if (k_start == 1) then
-    ! if (.false.) then
-        call initialize_variables()
-    else
-        call import_variables(k_start)
-    end if
-
+    call initialize_variables()
+    ! call import_variables('output/m300V/omega_V0.5_omega_pos0.05/potential_1d_100000.dat')
+    
     ! export initial conditions
     call export_variables(k_start)
 
@@ -30,6 +26,8 @@ program main
         call solve_ion_pos_conservation()
 
         call solve_ion_neg_conservation()
+
+        call solve_electron_conservation()
 
         print *, 'step ', k, ' error: ', error
 

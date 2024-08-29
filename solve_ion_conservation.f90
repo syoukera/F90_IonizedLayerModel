@@ -89,3 +89,49 @@ subroutine solve_ion_neg_conservation
     error = error + maxval(abs(n_neg - n_neg_old))
 
 end subroutine solve_ion_neg_conservation
+
+subroutine solve_electron_conservation
+    use variables_module
+    implicit none
+
+    ! integer, intent(in) :: nx
+    ! real(8), intent(in) :: dx, dt
+    ! real(8), dimension(nx), intent(inout) :: n_plus, n_minus, V
+    integer :: i
+    real(8), dimension(nx) :: n_ele_old 
+    real(8) :: g ! spacial profile of ionization
+    real(8) :: a, b, c, d ! coefficients of discretised eq.
+
+    ! store old value
+    n_ele_old = n_ele
+
+    ! solve coservation equation
+    do i = 2, nx-1
+
+        ! calclate spacial profile of ionization
+        g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
+
+        ! upwind difference
+        if (E(i) .le. 0.0) then
+            ! calclate coefficients of discretised eq.
+            a = 2.0*D_ele/dx**2  - (K_ele/dx)*E(i) + k_r*n_pos(i)
+            b = D_ele/dx**2
+            c = D_ele/dx**2 - (K_ele/dx)*E(i-1)
+        else
+            ! calclate coefficients of discretised eq.
+            a = 2.0*D_ele/dx**2  + (K_ele/dx)*E(i) + k_r*n_pos(i)
+            b = D_ele/dx**2 + (K_ele/dx)*E(i+1)
+            c = D_ele/dx**2
+        endif
+
+        d = alpha*k_i*g
+
+        ! calclate next n_ele(i) using SOR-method
+        n_ele(i) = (1.0d0 - omega_ele)*n_ele(i) &
+                 + omega_ele*(1.0/a)*(b*n_ele(i+1) + c*n_ele(i-1) + d)
+
+    end do
+
+    error = error + maxval(abs(n_ele - n_ele_old))
+
+end subroutine solve_electron_conservation
