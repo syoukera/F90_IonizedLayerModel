@@ -4,13 +4,14 @@ program main
     integer :: i, k
 
     if (k_start == 1) then
+    ! if (.false.) then
         call initialize_variables()
     else
         call import_variables(k_start)
     end if
 
     ! export initial conditions
-    call export_variables(1)
+    call export_variables(k_start)
 
     ! iteration by SOR method
     do k = k_start, k_end
@@ -38,10 +39,10 @@ program main
             exit
         end if
 
-        ! ! output_variables for fixed duration
-        ! if (mod(k, 1000000) == 0) then
-        !     call output_variables(k)
-        ! end if
+        ! export_variables for fixed duration
+        if (mod(k, k_step) == 0) then
+            call export_variables(k)
+        end if
 
     end do
 

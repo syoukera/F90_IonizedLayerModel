@@ -35,12 +35,13 @@ module variables_module
     double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
 
     ! parameters for computation
-    integer, parameter :: k_start = 101
-    integer, parameter :: k_end   = 200
+    integer, parameter :: k_start = 1
+    integer, parameter :: k_end   = 100000
+    integer, parameter :: k_step  = 10000
     double precision, parameter :: tolerance = 2.0d-6
-    double precision, parameter :: omega_V   = 2.0d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 0.005d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_V   = 0.1d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 0.05d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 0.05d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_ele = 1.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision :: error
 
@@ -66,10 +67,10 @@ module variables_module
             X(i) = (i-1) * dx
             ! n_pos(i) = 0.0d0
             ! n_neg(i) = 0.0d0
-            n_pos(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
-            n_neg(i) = 1.0d16*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
+            n_pos(i) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
+            n_neg(i) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
             n_ele(i) = 0.0d0
-            rho(i) = (n_pos(i) - n_neg(i) - n_neg(i))*q_e
+            rho(i) = (n_pos(i) - n_neg(i) - n_ele(i))*q_e
         end do
 
         ! set boundary on V
@@ -102,7 +103,7 @@ module variables_module
         implicit none
         integer, intent(in) :: k
         integer :: i
-        character(len=30) :: filename
+        character(len=60) :: filename
         
         ! ! calculate current density
         ! do i = 2, nx-1
@@ -133,7 +134,7 @@ module variables_module
         implicit none
         integer, intent(in) :: k
         integer :: i
-        character(len=30) :: filename
+        character(len=60) :: filename
         
         ! ! calculate current density
         ! do i = 2, nx-1
@@ -145,13 +146,14 @@ module variables_module
         ! end do
 
         
-        ! create a unique filename using the integer i
-        write(filename, '("potential_1d_", I0, ".dat")') k
-
+        ! ! create a unique filename using the integer i
+        ! write(filename, '("potential_1d_", I0, ".dat")') k
+        filename = 'output/1kV_omega_V1.0_omega_ion0.05/potential_1d_100000.dat'
+        
         print *, "Import from file: ", filename
 
         ! open file
-        open(unit=1, file='potential_1d_101.dat', status='old')
+        open(unit=1, file=filename, status='old')
 
         ! skip header
         read(1, '(A)')        
