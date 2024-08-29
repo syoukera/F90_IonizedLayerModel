@@ -35,7 +35,7 @@ module variables_module
     double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
 
     ! parameters for computation
-    integer, parameter :: max_iter = 10000000
+    integer, parameter :: max_iter = 100
     double precision, parameter :: tolerance = 2.0d-6
     double precision, parameter :: omega_V   = 2.0d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
@@ -96,5 +96,35 @@ module variables_module
         E(1) = -(V(2) - V(1)) / dx
         E(nx) = -(V(nx) - V(nx-1)) / dx
     end subroutine update_electric_field
+
+    subroutine output_variables(k)
+        implicit none
+        integer, intent(in) :: k
+        integer :: i
+        character(len=30) :: filename
+        
+        ! ! calculate current density
+        ! do i = 2, nx-1
+
+        !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dx)) - K_pos*n_pos(i)*E(i))*(+q_e) &
+        !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dx)) + K_neg*n_neg(i)*E(i))*(-q_e) &
+        !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dx)) + K_ele*n_ele(i)*E(i))*(-q_e)
+
+        ! end do
+
+        
+        ! create a unique filename using the integer i
+        write(filename, '("potential_1d_", I0, ".dat")') k
+
+        ! output
+        open(unit=1, file=filename, status='replace')
+        write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3]"
+        do i = 1, nx
+            write(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
+            ! write(1, '(E10.4)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
+        end do
+        close(1)
+
+    end subroutine output_variables
 
 end module variables_module
