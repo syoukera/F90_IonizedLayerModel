@@ -3,10 +3,17 @@ program main
     implicit none
     integer :: i, k
 
-    call initialize_variables()
+    if (k_start == 1) then
+        call initialize_variables()
+    else
+        call import_variables(k_start)
+    end if
+
+    ! export initial conditions
+    call export_variables(1)
 
     ! iteration by SOR method
-    do k = 1, max_iter
+    do k = k_start, k_end
 
         error = 0.0
 
@@ -38,10 +45,10 @@ program main
 
     end do
 
-    if (k == max_iter) then
-        print *, 'Did not converge after ', max_iter, ' iterations.'
+    if (k == k_end) then
+        print *, 'Did not converge after ', k_end, ' iterations.'
     end if
 
-    call output_variables(k)
+    call export_variables(k)
 
 end program main
