@@ -2,11 +2,11 @@ subroutine solve_ion_pos_conservation
     use variables_module
     implicit none
 
-    ! integer, intent(in) :: nx
-    ! real(8), intent(in) :: dx, dt
-    ! real(8), dimension(nx), intent(inout) :: n_plus, n_minus, V
+    ! integer, intent(in) :: nz
+    ! real(8), intent(in) :: dz, dt
+    ! real(8), dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i
-    real(8), dimension(nx) :: n_pos_old 
+    real(8), dimension(nz) :: n_pos_old 
     real(8) :: g ! spacial profile of ionization
     real(8) :: a, b, c, d ! coefficients of discretised eq.
 
@@ -14,7 +14,7 @@ subroutine solve_ion_pos_conservation
     n_pos_old = n_pos
 
     ! solve coservation equation
-    do i = 2, nx-1
+    do i = 2, nz-1
 
         ! calclate spacial profile of ionization
         g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
@@ -22,14 +22,14 @@ subroutine solve_ion_pos_conservation
         ! upwind difference
         if (E(i) .ge. 0.0) then
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_pos/dx**2  + (K_pos/dx)*E(i) + k_r*(n_ele(i) + n_neg(i))
-            b = D_pos/dx**2
-            c = D_pos/dx**2 + (K_pos/dx)*E(i-1)
+            a = 2.0*D_pos/dz**2  + (K_pos/dz)*E(i) + k_r*(n_ele(i) + n_neg(i))
+            b = D_pos/dz**2
+            c = D_pos/dz**2 + (K_pos/dz)*E(i-1)
         else
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_pos/dx**2  - (K_pos/dx)*E(i) + k_r*(n_ele(i) + n_neg(i))
-            b = D_pos/dx**2 - (K_pos/dx)*E(i+1)
-            c = D_pos/dx**2
+            a = 2.0*D_pos/dz**2  - (K_pos/dz)*E(i) + k_r*(n_ele(i) + n_neg(i))
+            b = D_pos/dz**2 - (K_pos/dz)*E(i+1)
+            c = D_pos/dz**2
         endif
 
         d = k_i*g
@@ -48,11 +48,11 @@ subroutine solve_ion_neg_conservation
     use variables_module
     implicit none
 
-    ! integer, intent(in) :: nx
-    ! real(8), intent(in) :: dx, dt
-    ! real(8), dimension(nx), intent(inout) :: n_plus, n_minus, V
+    ! integer, intent(in) :: nz
+    ! real(8), intent(in) :: dz, dt
+    ! real(8), dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i
-    real(8), dimension(nx) :: n_neg_old 
+    real(8), dimension(nz) :: n_neg_old 
     real(8) :: g ! spacial profile of ionization
     real(8) :: a, b, c, d ! coefficients of discretised eq.
 
@@ -60,7 +60,7 @@ subroutine solve_ion_neg_conservation
     n_neg_old = n_neg
 
     ! solve coservation equation
-    do i = 2, nx-1
+    do i = 2, nz-1
 
         ! calclate spacial profile of ionization
         g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
@@ -68,14 +68,14 @@ subroutine solve_ion_neg_conservation
         ! upwind difference
         if (E(i) .le. 0.0) then
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_neg/dx**2  - (K_neg/dx)*E(i) + k_r*n_pos(i)
-            b = D_neg/dx**2
-            c = D_neg/dx**2 - (K_neg/dx)*E(i-1)
+            a = 2.0*D_neg/dz**2  - (K_neg/dz)*E(i) + k_r*n_pos(i)
+            b = D_neg/dz**2
+            c = D_neg/dz**2 - (K_neg/dz)*E(i-1)
         else
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_neg/dx**2  + (K_neg/dx)*E(i) + k_r*n_pos(i)
-            b = D_neg/dx**2 + (K_neg/dx)*E(i+1)
-            c = D_neg/dx**2
+            a = 2.0*D_neg/dz**2  + (K_neg/dz)*E(i) + k_r*n_pos(i)
+            b = D_neg/dz**2 + (K_neg/dz)*E(i+1)
+            c = D_neg/dz**2
         endif
 
         d = (1 - alpha)*k_i*g
@@ -94,11 +94,11 @@ subroutine solve_electron_conservation
     use variables_module
     implicit none
 
-    ! integer, intent(in) :: nx
-    ! real(8), intent(in) :: dx, dt
-    ! real(8), dimension(nx), intent(inout) :: n_plus, n_minus, V
+    ! integer, intent(in) :: nz
+    ! real(8), intent(in) :: dz, dt
+    ! real(8), dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i
-    real(8), dimension(nx) :: n_ele_old 
+    real(8), dimension(nz) :: n_ele_old 
     real(8) :: g ! spacial profile of ionization
     real(8) :: a, b, c, d ! coefficients of discretised eq.
 
@@ -106,7 +106,7 @@ subroutine solve_electron_conservation
     n_ele_old = n_ele
 
     ! solve coservation equation
-    do i = 2, nx-1
+    do i = 2, nz-1
 
         ! calclate spacial profile of ionization
         g = exp(- (pi*(X(i) - height_flame)**2)/a_thickness**2)
@@ -114,14 +114,14 @@ subroutine solve_electron_conservation
         ! upwind difference
         if (E(i) .le. 0.0) then
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_ele/dx**2  - (K_ele/dx)*E(i) + k_r*n_pos(i)
-            b = D_ele/dx**2
-            c = D_ele/dx**2 - (K_ele/dx)*E(i-1)
+            a = 2.0*D_ele/dz**2  - (K_ele/dz)*E(i) + k_r*n_pos(i)
+            b = D_ele/dz**2
+            c = D_ele/dz**2 - (K_ele/dz)*E(i-1)
         else
             ! calclate coefficients of discretised eq.
-            a = 2.0*D_ele/dx**2  + (K_ele/dx)*E(i) + k_r*n_pos(i)
-            b = D_ele/dx**2 + (K_ele/dx)*E(i+1)
-            c = D_ele/dx**2
+            a = 2.0*D_ele/dz**2  + (K_ele/dz)*E(i) + k_r*n_pos(i)
+            b = D_ele/dz**2 + (K_ele/dz)*E(i+1)
+            c = D_ele/dz**2
         endif
 
         d = alpha*k_i*g

@@ -15,7 +15,7 @@ program main
         error = 0.0
 
         ! calclate density of electric charge
-        do i = 1, nx
+        do i = 1, nz
             rho(i) = (n_pos(i) - n_neg(i) - n_ele(i))*q_e
         end do
 
