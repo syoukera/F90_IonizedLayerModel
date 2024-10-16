@@ -27,6 +27,18 @@ subroutine solve_poisson_equation
         end do
     end do
 
+    ! center axis (i = 1) 
+    ! dV/dr = 0.0
+    do j = 2, nz-1
+        V(1, j) = (1/6.0D0)*(V(1, j+1) + 4.0D0*V(2, j) + V(1, j-1))
+    end do
+
+    ! outlet (i = nr)
+    ! dV/dr = 0.0
+    do j = 2, nz-1
+        V(nr, j) = (1/4.0D0)*(V(nr, j+1) + 2.0D0*V(nr-1, j) + V(nr, j-1))
+    end do
+
     ! calclate error for check convergence
     error = error + maxval(abs(V - V_old))
 
