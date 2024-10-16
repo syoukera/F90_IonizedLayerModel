@@ -2,8 +2,11 @@ module variables_module
     implicit none
 
     ! parameters for grid
+    integer, parameter :: nr = 101
     integer, parameter :: nz = 101
+    double precision, parameter :: dr        = 1.0d-4 ! distance between grid points [m]
     double precision, parameter :: dz        = 1.0d-4 ! distance between grid points [m]
+    double precision, parameter :: length_r  = (nr-1)*dr ! length of calclation domain [m]
     double precision, parameter :: length_z  = (nz-1)*dz ! length of calclation domain [m]
     
     ! constants
@@ -46,40 +49,52 @@ module variables_module
     double precision :: error
 
     ! set variables arrays
-    double precision :: X(nz) ! position of eac grid point [m]
-    double precision :: V(nz) ! electric potential [V]
-    double precision :: E(nz) ! electric field [V/m]
-    double precision :: n_pos(nz) ! number density of positive ions [m-3]
-    double precision :: n_neg(nz) ! number density of negative ions [m-3]
-    double precision :: n_ele(nz) ! number density of electrons [m-3]
-    double precision :: rho(nz) ! density of electric charge [C/m3]
+    double precision :: distance_r(nr, nz) ! position of eac grid point [m]
+    double precision :: distance_z(nr, nz) ! position of eac grid point [m]
+    double precision :: V(nr, nz) ! electric potential [V]
+    double precision :: E_r(nr, nz) ! electric field [V/m]
+    double precision :: E_z(nr, nz) ! electric field [V/m]
+    double precision :: n_pos(nr, nz) ! number density of positive ions [m-3]
+    double precision :: n_neg(nr, nz) ! number density of negative ions [m-3]
+    double precision :: n_ele(nr, nz) ! number density of electrons [m-3]
+    double precision :: rho(nr, nz) ! density of electric charge [C/m3]
 
     ! output variables
-    double precision :: current_density(nz) ! current density [A/m3]
-    double precision :: body_force(nz) ! electric body force [N]
+    double precision :: current_density(nr, nz) ! current density [A/m3]
+    double precision :: body_force(nr, nz) ! electric body force [N]
 
     contains
 
     subroutine initialize_variables()
-        integer :: i
+        integer :: i, j
         
-        do i = 1, nz
-            X(i) = (i-1) * dz
-            n_pos(i) = 0.0d0
-            n_neg(i) = 0.0d0
-            ! n_pos(i) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
-            ! n_neg(i) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
-            n_ele(i) = 0.0d0
-            rho(i) = (n_pos(i) - n_neg(i) - n_ele(i))*q_e
+        do i = 1, nr
+            do j = 1, nz
+
+                distance_r(i, j) = (i-1) * dr 
+                distance_z(i, j) = (j-1) * dz
+
+                n_pos(i, j) = 0.0d0
+                n_neg(i, j) = 0.0d0
+                ! n_pos(i, j) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
+                ! n_neg(i, j) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
+                n_ele(i, j) = 0.0d0
+                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
+            end do
         end do
 
         ! set boundary on V
-        V(1) = V_start
-        V(nz) = V_end
+        do i = 1, nr
+            V(i, 1) = V_start
+            V(i, nz) = V_end
+        end do
 
         ! set initial conditions of V
-        do i = 2, nz-1
-            V(i) = V_start + (V_end - V_start)*((i-1.0)/(nz-1.0))
+        do i = 1, nr
+            do j = 2, nz-1
+                V(i, j) = 0.0d0
+                ! V(i, j) = V_start + (V_end - V_start)*((j-1.0)/(nz-1.0))
+            end do
         end do
 
         call update_electric_field()
@@ -87,23 +102,48 @@ module variables_module
     end subroutine initialize_variables
 
     subroutine update_electric_field()
-        integer :: i
+        integer :: i, j
 
         ! calclate electric field (E = -dV/dz)
-        do i = 2, nz-1
-        E(i) = -(V(i+1) - V(i-1)) / (2.0d0 * dz)
+        do i = 2, nr-1
+            do j = 2, nz-1
+                E_r(i, j) = -(V(i+1, j) - V(i-1, j)) / (2.0d0 * dr)
+                E_z(i, j) = -(V(i, j+1) - V(i, j-1)) / (2.0d0 * dz)
+            end do
         end do
 
-        ! boundary conditions
-        E(1) = -(V(2) - V(1)) / dz
-        E(nz) = -(V(nz) - V(nz-1)) / dz
-        
+        ! boundary conditions on z axis
+        do i = 1, nr
+
+            ! lower boundary
+            E_r(i, 1) = 0.0d0
+            E_z(i, 1) = -(V(i, 2) - V(i, 1)) / dz
+            
+            ! upper boundary
+            E_r(i, nz) = 0.0d0
+            E_z(i, nz) = -(V(i, nz) - V(i, nz-1)) / dz
+
+        end do
+
+        ! boundary conditions on r axis
+        do i = 2, nz-1
+
+            ! lower boundary
+            E_r(1, j) = -(V(2, j) - V(1, j)) / dr
+            E_z(1, j) = -(V(1, j+1) - V(1, j-1)) / (2.0d0 * dz)
+            
+            ! upper boundary
+            E_r(nr, j) = -(V(nr, j) - V(nr-1, j)) / dr
+            E_z(nr, j) = -(V(nr, j+1) - V(nr, j-1)) / (2.0d0 * dz)
+
+        end do
+
     end subroutine update_electric_field
 
     subroutine export_variables(k)
         implicit none
         integer, intent(in) :: k
-        integer :: i
+        integer :: i, j
         character(len=60) :: filename
         
         ! ! calculate current density
@@ -123,48 +163,47 @@ module variables_module
 
         ! output
         open(unit=1, file=filename, status='replace')
-        write(1,*) "X[m] rho[C/m3] V[V] E[V/m] n_pos[ions/m3] n_neg[ions/m3] n_ele[ions/m3]"
-        do i = 1, nz
-            write(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
+        do i = 1, nr
+            write(1, *) (V(i, j), j = 1, nz)
         end do
         close(1)
 
     end subroutine export_variables
 
-    subroutine import_variables(k)
-        implicit none
-        integer, intent(in) :: k
-        integer :: i
-        character(len=60) :: filename
+    ! subroutine import_variables(k)
+    !     implicit none
+    !     integer, intent(in) :: k
+    !     integer :: i
+    !     character(len=60) :: filename
         
-        ! ! calculate current density
-        ! do i = 2, nz-1
+    !     ! ! calculate current density
+    !     ! do i = 2, nz-1
 
-        !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dz)) - K_pos*n_pos(i)*E(i))*(+q_e) &
-        !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dz)) + K_neg*n_neg(i)*E(i))*(-q_e) &
-        !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dz)) + K_ele*n_ele(i)*E(i))*(-q_e)
+    !     !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dz)) - K_pos*n_pos(i)*E(i))*(+q_e) &
+    !     !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dz)) + K_neg*n_neg(i)*E(i))*(-q_e) &
+    !     !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dz)) + K_ele*n_ele(i)*E(i))*(-q_e)
 
-        ! end do
+    !     ! end do
 
         
-        ! ! create a unique filename using the integer i
-        ! write(filename, '("potential_1d_", I0, ".dat")') k
-        filename = 'output/1kV_omega_V1.0_omega_ion0.05/potential_1d_100000.dat'
+    !     ! ! create a unique filename using the integer i
+    !     ! write(filename, '("potential_1d_", I0, ".dat")') k
+    !     filename = 'output/1kV_omega_V1.0_omega_ion0.05/potential_1d_100000.dat'
         
-        print *, "Import from file: ", filename
+    !     print *, "Import from file: ", filename
 
-        ! open file
-        open(unit=1, file=filename, status='old')
+    !     ! open file
+    !     open(unit=1, file=filename, status='old')
 
-        ! skip header
-        read(1, '(A)')        
+    !     ! skip header
+    !     read(1, '(A)')        
         
-        do i = 1, nz
-            read(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
-        end do
+    !     do i = 1, nz
+    !         read(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
+    !     end do
 
-        close(1)
+    !     close(1)
 
-    end subroutine import_variables
+    ! end subroutine import_variables
 
 end module variables_module

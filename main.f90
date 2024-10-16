@@ -1,7 +1,7 @@
 program main
     use variables_module
     implicit none
-    integer :: i, k
+    integer :: i, j, k
 
     call initialize_variables()
     ! call import_variables('output/m300V/omega_V0.5_omega_pos0.05/potential_1d_100000.dat')
@@ -15,19 +15,21 @@ program main
         error = 0.0
 
         ! calclate density of electric charge
-        do i = 1, nz
-            rho(i) = (n_pos(i) - n_neg(i) - n_ele(i))*q_e
+        do i = 1, nr
+            do j = 1, nz
+                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
+            end do
         end do
 
         call solve_poisson_equation()
 
         call update_electric_field()
 
-        call solve_ion_pos_conservation()
+        ! call solve_ion_pos_conservation()
 
-        call solve_ion_neg_conservation()
+        ! call solve_ion_neg_conservation()
 
-        call solve_electron_conservation()
+        ! call solve_electron_conservation()
 
         print *, 'step ', k, ' error: ', error
 
