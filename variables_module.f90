@@ -34,7 +34,7 @@ module variables_module
     double precision, parameter :: D_ele = K_ele*k_B*T/q_e ! diffusion coefficients of electrons [m2/s]
     
     ! parameters for boundary conditions
-    double precision, parameter :: V_start      = 300 ! valtage for initial point [V]
+    double precision, parameter :: V_start      = 300D0 ! valtage for initial point [V]
     double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
 
     ! parameters for computation
@@ -42,7 +42,7 @@ module variables_module
     integer, parameter :: k_end   = 1000000
     integer, parameter :: k_step  = 100000
     double precision, parameter :: tolerance = 2.0d-6
-    double precision, parameter :: omega_V   = 0.1d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_V   = 0.5d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_neg = 0.005d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_ele = 0.005d0 ! relaxation coefficient (1 < omega < 2)
@@ -58,6 +58,11 @@ module variables_module
     double precision :: n_neg(nr, nz) ! number density of negative ions [m-3]
     double precision :: n_ele(nr, nz) ! number density of electrons [m-3]
     double precision :: rho(nr, nz) ! density of electric charge [C/m3]
+    
+    double precision :: V_old(nr, nz)
+    double precision :: n_pos_old (nr, nz)
+    double precision, dimension(nr, nz) :: n_neg_old 
+    double precision, dimension(nr, nz) :: n_ele_old 
 
     ! output variables
     double precision :: current_density(nr, nz) ! current density [A/m3]
@@ -74,11 +79,12 @@ module variables_module
                 distance_r(i, j) = (i-1) * dr 
                 distance_z(i, j) = (j-1) * dz
 
-                n_pos(i, j) = 0.0d0
+                ! n_pos(i, j) = 0.0d0
+                n_pos(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
                 n_neg(i, j) = 0.0d0
-                ! n_pos(i, j) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
                 ! n_neg(i, j) = 1.0d13*max(exp(- pi*(X(i) - height_flame)**2/a_thickness**2), 0.0)
                 n_ele(i, j) = 0.0d0
+
                 rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
             end do
         end do
@@ -163,8 +169,8 @@ module variables_module
 
         ! output
         open(unit=1, file=filename, status='replace')
-        do i = 1, nr
-            write(1, *) (V(i, j), j = 1, nz)
+        do j = nz, 1, -1
+            write(1, *) (V(i, j), i = 1, nr)
         end do
         close(1)
 
