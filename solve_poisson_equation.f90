@@ -2,7 +2,7 @@ subroutine solve_poisson_equation
     use variables_module
     implicit none
     integer :: i, j
-    double precision :: V_old(nr, nz)
+    ! double precision :: V_old(nr, nz)
     double precision :: r
 
     ! save old value
@@ -18,11 +18,11 @@ subroutine solve_poisson_equation
     do i = 2, nr-1
         do j = 2, nz-1
 
-            r = (i - 1) * dr
+            r = distance_r(i, j)
 
             ! cylindrical grid
             V(i, j) = (1 - omega_V) * V(i, j) + omega_V * 0.25D0 * &
-            (V(i+1, j)*(1 + 0.5*dr/r) + V(i-1, j)*(1.0 - 0.5*dr/r) + V(i, j+1) + V(i, j-1))
+            (V(i+1, j)*(1 + 0.5*dr/r) + V(i-1, j)*(1.0 - 0.5*dr/r) + V(i, j+1) + V(i, j-1) + dr*dr*rho(i, j)/epsilon_0)
 
         end do
     end do
