@@ -56,6 +56,13 @@ subroutine solve_ion_pos_conservation
         end do
     end do
 
+    ! boundary condition for r = 0 (noiman boundary)
+    n_pos(1, :) = n_pos(2, :)
+
+    ! boundary condition for r = nr (noiman boundary)
+    n_pos(nr, :) = n_pos(nr-1, :)
+
+
     error = error + maxval(abs(n_pos - n_pos_old))
 
 end subroutine solve_ion_pos_conservation
