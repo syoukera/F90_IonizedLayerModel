@@ -8,7 +8,7 @@ subroutine solve_ion_pos_conservation
     integer :: i, j
     ! double precision :: n_pos_old (nr, nz)
     double precision :: g ! spacial profile of ionization
-    double precision :: a, b, c, d ! coefficients of discretised eq.
+    double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
 
     ! store old value
     n_pos_old = n_pos
@@ -22,25 +22,36 @@ subroutine solve_ion_pos_conservation
 
             ! central difference for diffusion and source term
             a = 2.0*D_pos/dz**2  + k_r*(n_ele(i, j) + n_neg(i, j))
-            b = D_pos/dz**2
-            c = D_pos/dz**2 
+            bi = D_pos/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_pos/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_pos/dz**2
+            cj = D_pos/dz**2 
+            
+            ! upwind difference for convection term r direction
+            if (E_r(i, j) .ge. 0.0) then
+                a = a + (K_pos/dr)*E_r(i, j)
+                ci = ci + (K_pos/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
+            else
+                a = a - (K_pos/dr)*E_r(i, j)
+                bi = bi - (K_pos/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
+            endif
 
             ! upwind difference for convection term z direction
             if (E_z(i, j) .ge. 0.0) then
                 ! calclate coefficients of discretised eq.
                 a = a + (K_pos/dz)*E_z(i, j)
-                c = c + (K_pos/dz)*E_z(i, j-1)
+                cj = cj + (K_pos/dz)*E_z(i, j-1)
             else
                 ! calclate coefficients of discretised eq.
                 a = a - (K_pos/dz)*E_z(i, j)
-                b = b - (K_pos/dz)*E_z(i, j+1)
+                bj = bj - (K_pos/dz)*E_z(i, j+1)
             endif
 
             d = k_i*g
 
             ! calclate next n_pos(i) using SOR-method
             n_pos(i, j) = (1.0d0 - omega_pos)*n_pos(i, j) &
-                    + omega_pos*(1.0/a)*(b*n_pos(i, j+1) + c*n_pos(i, j-1) + d)
+                    + omega_pos*(1.0/a)*(bj*n_pos(i, j+1) + cj*n_pos(i, j-1) + d)
 
         end do
     end do
