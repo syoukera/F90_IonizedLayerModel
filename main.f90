@@ -25,7 +25,7 @@ program main
 
         call update_electric_field()
 
-        ! call solve_ion_pos_conservation()
+        call solve_ion_pos_conservation()
 
         ! call solve_ion_neg_conservation()
 

@@ -20,17 +20,20 @@ subroutine solve_ion_pos_conservation
             ! calclate spacial profile of ionization
             g = exp(- (pi*(distance_z(i, j) - height_flame)**2)/a_thickness**2)
 
-            ! upwind difference
+            ! central difference for diffusion and source term
+            a = 2.0*D_pos/dz**2  + k_r*(n_ele(i, j) + n_neg(i, j))
+            b = D_pos/dz**2
+            c = D_pos/dz**2 
+
+            ! upwind difference for convection term z direction
             if (E_z(i, j) .ge. 0.0) then
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_pos/dz**2  + (K_pos/dz)*E_z(i, j) + k_r*(n_ele(i, j) + n_neg(i, j))
-                b = D_pos/dz**2
-                c = D_pos/dz**2 + (K_pos/dz)*E_z(i, j-1)
+                a = a + (K_pos/dz)*E_z(i, j)
+                c = c + (K_pos/dz)*E_z(i, j-1)
             else
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_pos/dz**2  - (K_pos/dz)*E_z(i, j) + k_r*(n_ele(i, j) + n_neg(i, j))
-                b = D_pos/dz**2 - (K_pos/dz)*E_z(i, j+1)
-                c = D_pos/dz**2
+                a = a - (K_pos/dz)*E_z(i, j)
+                b = b - (K_pos/dz)*E_z(i, j+1)
             endif
 
             d = k_i*g
