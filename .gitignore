@@ -4,3 +4,4 @@ a.out
 *.mod
 ionized_layer
 log.*
+input/*
