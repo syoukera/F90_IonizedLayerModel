@@ -64,6 +64,10 @@ module variables_module
     double precision, dimension(nr, nz) :: n_neg_old 
     double precision, dimension(nr, nz) :: n_ele_old 
 
+    ! input data for flame height
+    double precision :: normalized_flame_height(nr)
+    double precision :: normalized_intensity(nr)
+
     ! output variables
     double precision :: current_density(nr, nz) ! current density [A/m3]
     double precision :: body_force(nr, nz) ! electric body force [N]
@@ -106,6 +110,29 @@ module variables_module
         call update_electric_field()
 
     end subroutine initialize_variables
+
+    subroutine load_flame_height()
+
+        integer :: i
+        character(len=100) :: filename
+    
+        filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
+    
+        open(unit=10, file=filename, status="old", action="read")
+    
+        ! データを1行ずつ読み込み
+        do i = 1, nr
+            read(10, *) normalized_flame_height(i), normalized_intensity(i)
+        end do
+    
+        close(10)
+    
+        ! ! 結果を確認
+        ! do i = 1, nr
+        !     print *, i, normalized_flame_height(i), normalized_intensity(i)
+        ! end do
+
+    end subroutine load_flame_height
 
     subroutine update_electric_field()
         integer :: i, j
@@ -170,7 +197,7 @@ module variables_module
         ! output
         open(unit=1, file=filename, status='replace')
         do j = nz, 1, -1
-            write(1, *) (V(i, j), i = 1, nr)
+            write(1, *) (n_pos(i, j), i = 1, nr)
         end do
         close(1)
 

@@ -6,6 +6,8 @@ program main
     call initialize_variables()
     ! call import_variables('output/m300V/omega_V0.5_omega_pos0.05/potential_1d_100000.dat')
     
+    call load_flame_height()
+
     ! export initial conditions
     call export_variables(k_start)
 
