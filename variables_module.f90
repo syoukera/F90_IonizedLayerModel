@@ -22,10 +22,10 @@ module variables_module
     ! parameters for transport and reactions
     double precision, parameter :: k_i = 1.0d20 ! rate coeficient of ionization ions/m3s
     double precision, parameter :: k_r = 2.4d-13 ! rate coeficient of recombination m3/ions s
+    double precision, parameter :: k_a = 2.4d-13 ! rate coeficient of attachment m3/ions s
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
     double precision, parameter :: K_ele = 0.4  ! mobility of electrons [m2/s V]
-    double precision, parameter :: alpha = 1.0  ! ratio of electrons among the negatively charges species [0-1]
     double precision, parameter :: T = 298d0  ! temperature [K]
 
     ! diffusion coefficients is drived from Einstein Eq.

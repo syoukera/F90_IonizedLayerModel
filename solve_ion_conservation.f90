@@ -17,7 +17,7 @@ subroutine solve_ion_pos_conservation
         do j = 2, nz-1
 
             ! central difference for diffusion and source term
-            a = 4.0*D_pos/dz**2  + k_r*(n_ele(i, j) + n_neg(i, j))
+            a = 4.0*D_pos/dz**2  + k_r*n_ele(i, j)
             bi = D_pos/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
             ci = D_pos/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
             bj = D_pos/dz**2
@@ -82,6 +82,7 @@ subroutine solve_ion_neg_conservation
         do j = 2, nz-1
             
             ! central difference for diffusion and source term
+            ! a = 4.0*D_neg/dz**2  + k_r*n_pos(i, j) + k_a*g_a(i, j)
             a = 4.0*D_neg/dz**2  + k_r*n_pos(i, j)
             bi = D_neg/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
             ci = D_neg/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
@@ -108,8 +109,7 @@ subroutine solve_ion_neg_conservation
                 bj = bj + (K_neg/dz)*E_z(i, j+1)
             endif
             
-
-            d = (1 - alpha)*k_i*g_i(i, j)
+            d = k_i*g_i(i, j)
 
             ! calclate next n_neg(i) using SOR-method
             n_neg(i, j) = (1.0d0 - omega_neg)*n_neg(i, j) &
@@ -149,7 +149,7 @@ subroutine solve_electron_conservation
         do j = 2, nz-1
             
             ! central difference for diffusion and source term
-            a = 4.0*D_ele/dz**2  + k_r*n_pos(i, j)
+            a = 4.0*D_ele/dz**2
             bi = D_ele/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
             ci = D_ele/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
             bj = D_ele/dz**2
@@ -175,7 +175,7 @@ subroutine solve_electron_conservation
                 bj = bj + (K_ele/dz)*E_z(i, j+1)
             endif
 
-            d = alpha*k_i*g_i(i, j)
+            d = k_a*g_a(i, j)*n_ele(i, j)
 
             ! calclate next n_ele(i) using SOR-method
             n_ele(i, j) = (1.0d0 - omega_ele)*n_ele(i, j) &
