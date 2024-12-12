@@ -25,7 +25,7 @@ module variables_module
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
     double precision, parameter :: K_ele = 0.4  ! mobility of electrons [m2/s V]
-    double precision, parameter :: alpha = 0.0  ! ratio of electrons among the negatively charges species [0-1]
+    double precision, parameter :: alpha = 1.0  ! ratio of electrons among the negatively charges species [0-1]
     double precision, parameter :: T = 298d0  ! temperature [K]
 
     ! diffusion coefficients is drived from Einstein Eq.
@@ -94,8 +94,9 @@ module variables_module
                 n_pos(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
                 ! n_neg(i, j) = 0.0d0
                 n_neg(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                n_ele(i, j) = 0.0d0
-
+                ! n_ele(i, j) = 0.0d0
+                n_ele(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
+                
                 rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
             end do
         end do

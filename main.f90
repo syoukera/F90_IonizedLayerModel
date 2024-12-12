@@ -31,7 +31,7 @@ program main
 
         call solve_ion_neg_conservation()
 
-        ! call solve_electron_conservation()
+        call solve_electron_conservation()
 
         print *, 'step ', k, ' error: ', error
 

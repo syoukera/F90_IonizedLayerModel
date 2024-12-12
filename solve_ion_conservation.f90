@@ -206,39 +206,89 @@ subroutine solve_electron_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_ele_old 
     double precision :: g ! spacial profile of ionization
-    double precision :: a, b, c, d ! coefficients of discretised eq.
+    double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: flame_height, distance_flame
+    integer :: i_edge
 
     ! store old value
     n_ele_old = n_ele
+    
+    ! initial value of flame edge
+    i_edge = 1
 
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
 
-            ! calclate spacial profile of ionization
-            g = exp(- (pi*(distance_z(i, j) - height_flame)**2)/a_thickness**2)
+            ! calculate distance_flame
+            ! flame exist if intensity is high
+            if (normalized_intensity(i) .ge. 0.20) then
 
-            ! upwind difference
+                ! calculate flame height
+                flame_height = normalized_flame_height(i)*length_z
+
+                ! calculated distance to flame height
+                distance_flame = distance_z(i, j) - flame_height
+
+                ! update flame posiiton
+                i_edge = i
+
+            ! when flame doesn't exist on the column
+            else
+
+                ! calculate flame height at i_edge
+                flame_height = normalized_flame_height(i_edge)*length_z
+
+                ! calculated distance to flame edge
+                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
+                                    + (distance_z(i, j) - flame_height)**2)
+
+            end if
+
+            ! calclate spacial profile of ionization
+            g = exp(- (pi*distance_flame**2)/a_thickness**2)
+            
+            ! central difference for diffusion and source term
+            a = 2.0*D_ele/dz**2  + k_r*n_pos(i, j)
+            bi = D_ele/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_ele/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_ele/dz**2
+            cj = D_ele/dz**2 
+
+            ! upwind difference for convection term r direction
+            if (E_r(i, j) .le. 0.0) then
+                a = a - (K_ele/dr)*E_r(i, j)
+                ci = ci - (K_ele/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
+            else
+                a = a + (K_ele/dr)*E_r(i, j)
+                bi = bi + (K_ele/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
+            endif
+            
+            ! upwind difference for convection term z direction
             if (E_z(i, j) .le. 0.0) then
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_ele/dz**2  - (K_ele/dz)*E_z(i, j) + k_r*n_pos(i, j)
-                b = D_ele/dz**2
-                c = D_ele/dz**2 - (K_ele/dz)*E_z(i, j-1)
+                a = a  - (K_ele/dz)*E_z(i, j)
+                cj = cj - (K_ele/dz)*E_z(i, j-1)
             else
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_ele/dz**2  + (K_ele/dz)*E_z(i, j) + k_r*n_pos(i, j)
-                b = D_ele/dz**2 + (K_ele/dz)*E_z(i, j+1)
-                c = D_ele/dz**2
+                a = a  + (K_ele/dz)*E_z(i, j)
+                bj = bj + (K_ele/dz)*E_z(i, j+1)
             endif
 
             d = alpha*k_i*g
 
             ! calclate next n_ele(i) using SOR-method
             n_ele(i, j) = (1.0d0 - omega_ele)*n_ele(i, j) &
-                    + omega_ele*(1.0/a)*(b*n_ele(i, j+1) + c*n_ele(i, j-1) + d)
+                    + omega_ele*(1.0/a)*(bi*n_ele(i, j+1) + ci*n_ele(i, j-1) + d)
 
         end do
     end do
+    
+    ! boundary condition for r = 0 (noiman boundary)
+    n_ele(1, :) = n_ele(2, :)
+
+    ! boundary condition for r = nr (noiman boundary)
+    n_ele(nr, :) = n_ele(nr-1, :)
 
     error = error + maxval(abs(n_ele - n_ele_old))
 
