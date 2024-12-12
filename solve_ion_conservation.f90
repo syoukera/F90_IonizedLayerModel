@@ -22,6 +22,7 @@ subroutine solve_ion_pos_conservation
     do i = 2, nr-1
         do j = 2, nz-1
 
+            ! calculate distance_flame
             ! flame exist if intensity is high
             if (normalized_intensity(i) .ge. 0.20) then
 
@@ -91,7 +92,6 @@ subroutine solve_ion_pos_conservation
     ! boundary condition for r = nr (noiman boundary)
     n_pos(nr, :) = n_pos(nr-1, :)
 
-
     error = error + maxval(abs(n_pos - n_pos_old))
 
 end subroutine solve_ion_pos_conservation
@@ -106,39 +106,91 @@ subroutine solve_ion_neg_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_neg_old 
     double precision :: g ! spacial profile of ionization
-    double precision :: a, b, c, d ! coefficients of discretised eq.
+    double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: flame_height, distance_flame
+    integer :: i_edge
 
     ! store old value
     n_neg_old = n_neg
+    
+    ! initial value of flame edge
+    i_edge = 1
 
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
+            
+            ! calculate distance_flame
+            ! flame exist if intensity is high
+            if (normalized_intensity(i) .ge. 0.20) then
+
+                ! calculate flame height
+                flame_height = normalized_flame_height(i)*length_z
+
+                ! calculated distance to flame height
+                distance_flame = distance_z(i, j) - flame_height
+
+                ! update flame posiiton
+                i_edge = i
+
+            ! when flame doesn't exist on the column
+            else
+
+                ! calculate flame height at i_edge
+                flame_height = normalized_flame_height(i_edge)*length_z
+
+                ! calculated distance to flame edge
+                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
+                                    + (distance_z(i, j) - flame_height)**2)
+
+            end if
 
             ! calclate spacial profile of ionization
-            g = exp(- (pi*(distance_z(i, j) - height_flame)**2)/a_thickness**2)
+            g = exp(- (pi*distance_flame**2)/a_thickness**2)
+            
+            ! central difference for diffusion and source term
+            a = 2.0*D_neg/dz**2  + k_r*n_pos(i, j)
+            bi = D_neg/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_neg/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_neg/dz**2
+            cj = D_neg/dz**2 
 
-            ! upwind difference
+            ! upwind difference for convection term r direction
+            if (E_r(i, j) .le. 0.0) then
+                a = a - (K_neg/dr)*E_r(i, j)
+                ci = ci - (K_neg/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
+            else
+                a = a + (K_neg/dr)*E_r(i, j)
+                bi = bi + (K_neg/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
+            endif
+
+            ! upwind difference for convection term z direction
             if (E_z(i, j) .le. 0.0) then
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_neg/dz**2  - (K_neg/dz)*E_z(i, j) + k_r*n_pos(i, j)
-                b = D_neg/dz**2
-                c = D_neg/dz**2 - (K_neg/dz)*E_z(i, j-1)
+                a = a  - (K_neg/dz)*E_z(i, j)
+                cj = cj - (K_neg/dz)*E_z(i, j-1)
             else
                 ! calclate coefficients of discretised eq.
-                a = 2.0*D_neg/dz**2  + (K_neg/dz)*E_z(i, j) + k_r*n_pos(i, j)
-                b = D_neg/dz**2 + (K_neg/dz)*E_z(i, j+1)
-                c = D_neg/dz**2
+                a = a  + (K_neg/dz)*E_z(i, j)
+                bj = bj + (K_neg/dz)*E_z(i, j+1)
             endif
+            
 
             d = (1 - alpha)*k_i*g
 
             ! calclate next n_neg(i) using SOR-method
             n_neg(i, j) = (1.0d0 - omega_neg)*n_neg(i, j) &
-                    + omega_neg*(1.0/a)*(b*n_neg(i, j+1) + c*n_neg(i, j-1) + d)
+                    + omega_neg*(1.0/a)*(bi*n_neg(i, j+1) + ci*n_neg(i, j-1) + d)
 
         end do 
     end do
+
+    ! boundary condition for r = 0 (noiman boundary)
+    n_neg(1, :) = n_neg(2, :)
+
+    ! boundary condition for r = nr (noiman boundary)
+    n_neg(nr, :) = n_neg(nr-1, :)
+
 
     error = error + maxval(abs(n_neg - n_neg_old))
 
