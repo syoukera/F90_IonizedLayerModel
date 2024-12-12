@@ -9,7 +9,7 @@ subroutine solve_ion_pos_conservation
     ! double precision :: n_pos_old (nr, nz)
     double precision :: g ! spacial profile of ionization
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: flame_height, distance_edge
+    double precision :: flame_height, distance_flame
     integer :: i_edge
 
     ! store old value
@@ -28,24 +28,26 @@ subroutine solve_ion_pos_conservation
                 ! calculate flame height
                 flame_height = normalized_flame_height(i)*length_z
 
-                ! calclate spacial profile of ionization
-                g = exp(- (pi*(distance_z(i, j) - flame_height)**2)/a_thickness**2)
+                ! calculated distance to flame height
+                distance_flame = distance_z(i, j) - flame_height
 
                 ! update flame posiiton
                 i_edge = i
 
+            ! when flame doesn't exist on the column
             else
 
                 ! calculate flame height at i_edge
                 flame_height = normalized_flame_height(i_edge)*length_z
 
-                distance_edge = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
+                ! calculated distance to flame edge
+                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
                                     + (distance_z(i, j) - flame_height)**2)
 
-                ! calclate spacial profile of ionization
-                g = exp(- (pi*distance_edge**2)/a_thickness**2)
-
             end if
+
+            ! calclate spacial profile of ionization
+            g = exp(- (pi*distance_flame**2)/a_thickness**2)
 
             ! central difference for diffusion and source term
             a = 2.0*D_pos/dz**2  + k_r*(n_ele(i, j) + n_neg(i, j))
