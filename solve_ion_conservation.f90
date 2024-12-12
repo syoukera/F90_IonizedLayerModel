@@ -7,48 +7,14 @@ subroutine solve_ion_pos_conservation
     ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i, j
     ! double precision :: n_pos_old (nr, nz)
-    double precision :: g ! spacial profile of ionization
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: flame_height, distance_flame
-    integer :: i_edge
 
     ! store old value
     n_pos_old = n_pos
 
-    ! initial value of flame edge
-    i_edge = 1
-
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
-
-            ! calculate distance_flame
-            ! flame exist if intensity is high
-            if (normalized_intensity(i) .ge. 0.20) then
-
-                ! calculate flame height
-                flame_height = normalized_flame_height(i)*length_z
-
-                ! calculated distance to flame height
-                distance_flame = distance_z(i, j) - flame_height
-
-                ! update flame posiiton
-                i_edge = i
-
-            ! when flame doesn't exist on the column
-            else
-
-                ! calculate flame height at i_edge
-                flame_height = normalized_flame_height(i_edge)*length_z
-
-                ! calculated distance to flame edge
-                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
-                                    + (distance_z(i, j) - flame_height)**2)
-
-            end if
-
-            ! calclate spacial profile of ionization
-            g = exp(- (pi*distance_flame**2)/a_thickness**2)
 
             ! central difference for diffusion and source term
             a = 4.0*D_pos/dz**2  + k_r*(n_ele(i, j) + n_neg(i, j))
@@ -77,7 +43,7 @@ subroutine solve_ion_pos_conservation
                 bj = bj - (K_pos/dz)*E_z(i, j+1)
             endif
 
-            d = k_i*g
+            d = k_i*g_i(i, j)
 
             ! calclate next n_pos(i) using SOR-method
             n_pos(i, j) = (1.0d0 - omega_pos)*n_pos(i, j) &
@@ -106,48 +72,14 @@ subroutine solve_ion_neg_conservation
     ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_neg_old 
-    double precision :: g ! spacial profile of ionization
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: flame_height, distance_flame
-    integer :: i_edge
 
     ! store old value
     n_neg_old = n_neg
-    
-    ! initial value of flame edge
-    i_edge = 1
 
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
-            
-            ! calculate distance_flame
-            ! flame exist if intensity is high
-            if (normalized_intensity(i) .ge. 0.20) then
-
-                ! calculate flame height
-                flame_height = normalized_flame_height(i)*length_z
-
-                ! calculated distance to flame height
-                distance_flame = distance_z(i, j) - flame_height
-
-                ! update flame posiiton
-                i_edge = i
-
-            ! when flame doesn't exist on the column
-            else
-
-                ! calculate flame height at i_edge
-                flame_height = normalized_flame_height(i_edge)*length_z
-
-                ! calculated distance to flame edge
-                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
-                                    + (distance_z(i, j) - flame_height)**2)
-
-            end if
-
-            ! calclate spacial profile of ionization
-            g = exp(- (pi*distance_flame**2)/a_thickness**2)
             
             ! central difference for diffusion and source term
             a = 4.0*D_neg/dz**2  + k_r*n_pos(i, j)
@@ -177,7 +109,7 @@ subroutine solve_ion_neg_conservation
             endif
             
 
-            d = (1 - alpha)*k_i*g
+            d = (1 - alpha)*k_i*g_i(i, j)
 
             ! calclate next n_neg(i) using SOR-method
             n_neg(i, j) = (1.0d0 - omega_neg)*n_neg(i, j) &
@@ -207,48 +139,14 @@ subroutine solve_electron_conservation
     ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_ele_old 
-    double precision :: g ! spacial profile of ionization
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: flame_height, distance_flame
-    integer :: i_edge
 
     ! store old value
     n_ele_old = n_ele
-    
-    ! initial value of flame edge
-    i_edge = 1
 
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
-
-            ! calculate distance_flame
-            ! flame exist if intensity is high
-            if (normalized_intensity(i) .ge. 0.20) then
-
-                ! calculate flame height
-                flame_height = normalized_flame_height(i)*length_z
-
-                ! calculated distance to flame height
-                distance_flame = distance_z(i, j) - flame_height
-
-                ! update flame posiiton
-                i_edge = i
-
-            ! when flame doesn't exist on the column
-            else
-
-                ! calculate flame height at i_edge
-                flame_height = normalized_flame_height(i_edge)*length_z
-
-                ! calculated distance to flame edge
-                distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
-                                    + (distance_z(i, j) - flame_height)**2)
-
-            end if
-
-            ! calclate spacial profile of ionization
-            g = exp(- (pi*distance_flame**2)/a_thickness**2)
             
             ! central difference for diffusion and source term
             a = 4.0*D_ele/dz**2  + k_r*n_pos(i, j)
@@ -277,7 +175,7 @@ subroutine solve_electron_conservation
                 bj = bj + (K_ele/dz)*E_z(i, j+1)
             endif
 
-            d = alpha*k_i*g
+            d = alpha*k_i*g_i(i, j)
 
             ! calclate next n_ele(i) using SOR-method
             n_ele(i, j) = (1.0d0 - omega_ele)*n_ele(i, j) &

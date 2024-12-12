@@ -71,6 +71,9 @@ module variables_module
     double precision, dimension(nr, nz) :: n_neg_old 
     double precision, dimension(nr, nz) :: n_ele_old 
 
+    double precision :: g_i(nr, nz) ! spacial profile of ionization
+    double precision :: g_a(nr, nz) ! spacial profile of attachement
+
     ! input data for flame height
     double precision :: normalized_flame_height(nr)
     double precision :: normalized_intensity(nr)
@@ -141,6 +144,55 @@ module variables_module
         ! end do
 
     end subroutine load_flame_height
+
+    subroutine calculate_reaction_profile()
+        
+        integer :: i, j
+        double precision :: flame_height, distance_flame
+        integer :: i_edge
+
+        ! initial value of flame edge
+        i_edge = 1
+
+        ! solve coservation equation
+        do i = 2, nr-1
+            do j = 2, nz-1
+    
+                ! calculate distance_flame
+                ! flame exist if intensity is high
+                if (normalized_intensity(i) .ge. 0.20) then
+    
+                    ! calculate flame height
+                    flame_height = normalized_flame_height(i)*length_z
+    
+                    ! calculated distance to flame height
+                    distance_flame = distance_z(i, j) - flame_height
+    
+                    ! update flame posiiton
+                    i_edge = i
+    
+                ! when flame doesn't exist on the column
+                else
+    
+                    ! calculate flame height at i_edge
+                    flame_height = normalized_flame_height(i_edge)*length_z
+    
+                    ! calculated distance to flame edge
+                    distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
+                                        + (distance_z(i, j) - flame_height)**2)
+    
+                end if
+    
+                ! calclate spacial profile of ionization
+                g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
+
+                ! calclate spacial profile of attachment
+                g_a(i, j) = (erf((flame_height - distance_z(i, j))/a_thickness) + 1.0)/2.0
+
+            end do
+        end do
+
+    end subroutine calculate_reaction_profile
 
     subroutine update_electric_field()
         integer :: i, j
@@ -233,6 +285,18 @@ module variables_module
         open(unit=1, file='output/electrons.dat', status='replace')
         do j = nz, 1, -1
             write(1, *) (n_ele(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/profile_ionization.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (g_i(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/profile_attachment.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (g_a(i, j), i = 1, nr)
         end do
         close(1)
 

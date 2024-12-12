@@ -8,6 +8,8 @@ program main
     
     call load_flame_height()
 
+    call calculate_reaction_profile()
+
     ! ! export initial conditions
     ! call export_variables()
 
