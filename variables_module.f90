@@ -180,11 +180,10 @@ module variables_module
 
     end subroutine update_electric_field
 
-    subroutine export_variables(k)
+    subroutine export_variables()
         implicit none
-        integer, intent(in) :: k
         integer :: i, j
-        character(len=60) :: filename
+        ! character(len=60) :: filename
         
         ! ! calculate current density
         ! do i = 2, nz-1
@@ -196,17 +195,43 @@ module variables_module
         ! end do
 
         
-        ! create a unique filename using the integer i
-        write(filename, '("potential_1d_", I0, ".dat")') k
+        ! ! create a unique filename using the integer i
+        ! write(filename, '("potential_1d_", I0, ".dat")') k
+        ! print *, "Output to file: ", filename
 
-        print *, "Output to file: ", filename
-
-        ! output
-        open(unit=1, file=filename, status='replace')
+        open(unit=1, file='output/potential.dat', status='replace')
         do j = nz, 1, -1
-            ! write(1, *) (V(i, j), i = 1, nr)
-            ! write(1, *) (n_pos(i, j), i = 1, nr)
+            write(1, *) (V(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/electric_field_r.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (E_r(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/electric_field_z.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (E_z(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/positive_ions.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (n_pos(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/negative_ions.dat', status='replace')
+        do j = nz, 1, -1
             write(1, *) (n_neg(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/electrons.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (n_ele(i, j), i = 1, nr)
         end do
         close(1)
 

@@ -8,8 +8,8 @@ program main
     
     call load_flame_height()
 
-    ! export initial conditions
-    call export_variables(k_start)
+    ! ! export initial conditions
+    ! call export_variables()
 
     ! iteration by SOR method
     do k = k_start, k_end
@@ -41,10 +41,10 @@ program main
             exit
         end if
 
-        ! export_variables for fixed duration
-        if (mod(k, k_step) == 0) then
-            call export_variables(k)
-        end if
+        ! ! export_variables for fixed duration
+        ! if (mod(k, k_step) == 0) then
+        !     call export_variables()
+        ! end if
 
     end do
 
@@ -52,6 +52,6 @@ program main
         print *, 'Did not converge after ', k_end, ' iterations.'
     end if
 
-    call export_variables(k)
+    call export_variables()
 
 end program main
