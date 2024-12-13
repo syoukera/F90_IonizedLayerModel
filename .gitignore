@@ -5,3 +5,4 @@ a.out
 ionized_layer
 log.*
 input/*
+!input/flame_height_ch_10kV_posi_nr101
