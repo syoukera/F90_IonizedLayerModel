@@ -1,6 +1,6 @@
 # コンパイラとフラグの設定
 FC = gfortran
-FFLAGS = -O2 -Wall
+FFLAGS = -O2 -Wall -Jsrc
 
 # ターゲット名とオブジェクトファイル
 TARGET = ionized_layer
@@ -31,4 +31,4 @@ src/solve_ion_conservation.o: src/solve_ion_conservation.f90 src/variables_modul
 
 # クリーンアップターゲット
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET) src/*.mod
