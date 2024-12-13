@@ -287,6 +287,24 @@ module variables_module
         ! write(filename, '("potential_1d_", I0, ".dat")') k
         ! print *, "Output to file: ", filename
 
+        open(unit=1, file='output/grid_r.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (distance_r(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/grid_z.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (distance_z(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/charge_density.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (rho(i, j), i = 1, nr)
+        end do
+        close(1)
+
         open(unit=1, file='output/potential.dat', status='replace')
         do j = nz, 1, -1
             write(1, *) (V(i, j), i = 1, nr)
