@@ -4,11 +4,13 @@ module variables_module
     ! parameters for grid
     integer, parameter :: nr = 101
     integer, parameter :: nz = 101
-    double precision, parameter :: dr        = 1.0d-4 ! distance between grid points [m]
-    double precision, parameter :: dz        = 1.0d-4 ! distance between grid points [m]
-    double precision, parameter :: length_r  = (nr-1)*dr ! length of calclation domain [m]
-    double precision, parameter :: length_z  = (nz-1)*dz ! length of calclation domain [m]
-    
+
+    ! Note: dr = dz must be preserved in current imprementation    
+    double precision, parameter :: length_r = 10d-3 ! length of calclation domain [m] 
+    double precision, parameter :: length_z = 10d-3 ! length of calclation domain [m] 
+    double precision, parameter :: dr = length_r/(nr - 1.0) ! distance between grid points [m]
+    double precision, parameter :: dz = length_z/(nz - 1.0) ! distance between grid points [m]
+
     ! constants
     double precision, parameter :: epsilon_0    = 8.854187817d-12  ! vacuum permittivity [C/V m]
     double precision, parameter :: q_e          = 1.602176634d-19  ! elementary charge [C]
