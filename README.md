@@ -1,5 +1,28 @@
 # F90_IonizedLayerModel
 
-This repository is under construction  
+Ionized layer modelによって，火炎面を考慮してイオンの輸送を軸対象2次元で計算するコードです．CH自発光計測の結果をもとに，荷電粒子の分布と，電界強度，電流などが取得できるはずです．
 
-See https://linkinghub.elsevier.com/retrieve/pii/S0010218015003545
+## 使い方
+
+WSLなどの`gfortran`コマンドが使用できる環境で以下のコマンドを実行してください．
+
+```bash
+make
+./ionized_layer
+```
+
+計算が収束した場合には，outputフォルダにぞれぞれの物性値が記述されたファイルが出力されます．
+
+主な物性値や計算のパラメータは`src/variables_module.f90`に記載されているので，そこで変更することができます．収束が難しい場合には，`omega_**`で定義されている緩和係数を変更して見てください．
+
+## 火炎位置の変更
+
+このコードでは火炎位置をCHの自発光計測結果からPythonで前処理したものをインポートしています．そのため，火炎位置を変更する際には前処理を再度実行する必要があります．`ipynb/20241211_get_flame_position.ipynb`をjupyter notebookを開くことのできる環境で実行してみてください．  
+
+実行するとinputフォルダに処理が終了したデータが出力されます．電界の計算に読み込むためには，`variables_module.f90`の以下の行を変更してください．
+
+```src/variables_module.f90
+        filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
+```
+
+注意点として，前処理により出力されるファイルは，r方向の格子点数`nr`で補間した結果を用いています．そのため，電界の計算で格子点数を変更した時には，再度前処理を実行して，異なる`nr`でのデータを準備する必要があります．
