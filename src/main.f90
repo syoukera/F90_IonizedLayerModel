@@ -54,6 +54,8 @@ program main
         print *, 'Did not converge after ', k_end, ' iterations.'
     end if
 
+    call calculate_output_variables()
+
     call export_variables()
 
 end program main

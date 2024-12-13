@@ -57,7 +57,7 @@ module variables_module
 
     double precision :: error
 
-    ! set variables arrays
+    ! set variable arrays
     double precision :: distance_r(nr, nz) ! position of eac grid point [m]
     double precision :: distance_z(nr, nz) ! position of eac grid point [m]
     double precision :: V(nr, nz) ! electric potential [V]
@@ -75,14 +75,16 @@ module variables_module
 
     double precision :: g_i(nr, nz) ! spacial profile of ionization
     double precision :: g_a(nr, nz) ! spacial profile of attachement
+    
+    ! output variable arrays
+    double precision :: J_r(nr, nz) ! current density [C/m2]
+    double precision :: J_z(nr, nz) ! current density [C/m2]
+    double precision :: F_r(nr, nz) ! electric body force [N/m3]
+    double precision :: F_z(nr, nz) ! electric body force [N/m3]
 
     ! input data for flame height
     double precision :: normalized_flame_height(nr)
     double precision :: normalized_intensity(nr)
-
-    ! output variables
-    double precision :: current_density(nr, nz) ! current density [A/m3]
-    double precision :: body_force(nr, nz) ! electric body force [N]
 
     contains
 
@@ -196,6 +198,37 @@ module variables_module
 
     end subroutine calculate_reaction_profile
 
+    subroutine calculate_output_variables()
+
+        integer :: i, j
+
+        do i = 1, nr
+            do j = 1, nz
+
+                ! current density for r direction
+                J_r(i, j) = n_pos(i, j)*q_e*K_pos*E_r(i, j) &
+                          - n_neg(i, j)*q_e*K_neg*E_r(i, j) &
+                          - n_ele(i, j)*q_e*K_ele*E_r(i, j)
+
+                ! current density for z direction
+                J_z(i, j) = n_pos(i, j)*q_e*K_pos*E_z(i, j) &
+                          - n_neg(i, j)*q_e*K_neg*E_z(i, j) &
+                          - n_ele(i, j)*q_e*K_ele*E_z(i, j)
+                
+                ! calclate density of electric charge
+                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
+
+                ! electric body force for r direction
+                F_r = rho(i, j)*E_r(i, j)
+                
+                ! electric body force for z direction
+                F_z = rho(i, j)*E_z(i, j)
+
+            end do
+        end do
+
+    end subroutine calculate_output_variables
+
     subroutine update_electric_field()
         integer :: i, j
 
@@ -299,6 +332,30 @@ module variables_module
         open(unit=1, file='output/profile_attachment.dat', status='replace')
         do j = nz, 1, -1
             write(1, *) (g_a(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/current_density_r.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (J_r(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/current_density_z.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (J_z(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/electric_body_force_r.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (F_r(i, j), i = 1, nr)
+        end do
+        close(1)
+        
+        open(unit=1, file='output/electric_body_force_z.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (F_z(i, j), i = 1, nr)
         end do
         close(1)
 
