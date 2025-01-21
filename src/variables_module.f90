@@ -6,8 +6,8 @@ module variables_module
     integer, parameter :: nz = 101
 
     ! Note: dr = dz must be preserved in current imprementation    
-    double precision, parameter :: length_r = 10d-3 ! length of calclation domain [m] 
-    double precision, parameter :: length_z = 10d-3 ! length of calclation domain [m] 
+    double precision, parameter :: length_r = 20d-3 ! length of calclation domain [m] 
+    double precision, parameter :: length_z = 20d-3 ! length of calclation domain [m] 
     double precision, parameter :: dr = length_r/(nr - 1.0) ! distance between grid points [m]
     double precision, parameter :: dz = length_z/(nz - 1.0) ! distance between grid points [m]
 
@@ -36,8 +36,8 @@ module variables_module
     double precision, parameter :: D_ele = K_ele*k_B*T/q_e ! diffusion coefficients of electrons [m2/s]
     
     ! parameters for boundary conditions
-    double precision, parameter :: V_start      = 300D0 ! valtage for initial point [V]
-    double precision, parameter :: V_end        = 0.0d0 ! voltage for end point [V]
+    double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
+    double precision, parameter :: V_end        = 0.3d3 ! voltage for end point [V]
 
     ! parameters for computation
     integer, parameter :: k_start = 1
