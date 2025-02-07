@@ -22,9 +22,9 @@ module variables_module
     double precision, parameter :: a_thickness  = 1.0d-3 ! thickness parameter [m]
 
     ! parameters for transport and reactions
-    double precision, parameter :: k_i = 1.0d20 ! rate coeficient of ionization ions/m3s
-    double precision, parameter :: k_r = 2.4d-13 ! rate coeficient of recombination m3/ions s
-    double precision, parameter :: k_a = 2.4d-13 ! rate coeficient of attachment m3/ions s
+    double precision, parameter :: k_i = 1.76780381e+15 ! rate coeficient of ionization ions/m3/s
+    double precision, parameter :: k_r = 1.89301454e-13 ! rate coeficient of recombination m3/ions s
+    double precision, parameter :: k_a = 5.31781774d+7 ! rate coeficient of attachment  1/s
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
     double precision, parameter :: K_ele = 0.4  ! mobility of electrons [m2/s V]
@@ -37,7 +37,7 @@ module variables_module
     
     ! parameters for boundary conditions
     double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
-    double precision, parameter :: V_end        = 0.3d3 ! voltage for end point [V]
+    double precision, parameter :: V_end        = 3d3 ! voltage for end point [V]
 
     ! parameters for computation
     integer, parameter :: k_start = 1
@@ -188,11 +188,13 @@ module variables_module
                 end if
     
                 ! calclate spacial profile of ionization
-                g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
+                ! fitting to 1D PREMIX of Yuhia Ren
+                g_i(i, j) = exp(- (distance_flame)**2/9.707539122e-09)
+
 
                 ! calclate spacial profile of attachment
-                g_a(i, j) = (erf((flame_height - distance_z(i, j))/a_thickness) + 1.0)/2.0
-
+                ! fitting to 1D PREMIX of Yuhia Ren
+                g_a(i, j) = (erf((flame_height - distance_z(i, j))/2.74084987d-04) + 1.0)/2.0
             end do
         end do
 
