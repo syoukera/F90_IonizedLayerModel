@@ -52,6 +52,12 @@ subroutine solve_ion_pos_conservation
                         
         end do
     end do
+    
+    ! ! boundary condition for z = 0 (noiman boundary)
+    ! n_pos(:, 1) = n_pos(:, 2)
+
+    ! boundary condition for z = nz (noiman boundary)
+    n_pos(:, nz) = n_pos(:, nz-1)
 
     ! boundary condition for r = 0 (noiman boundary)
     n_pos(1, :) = n_pos(2, :)
@@ -118,6 +124,12 @@ subroutine solve_ion_neg_conservation
 
         end do 
     end do
+    
+    ! ! boundary condition for z = 0 (noiman boundary)
+    ! n_neg(:, 1) = n_neg(:, 2)
+
+    ! boundary condition for z = nz (noiman boundary)
+    n_neg(:, nz) = n_neg(:, nz-1)
 
     ! boundary condition for r = 0 (noiman boundary)
     n_neg(1, :) = n_neg(2, :)
@@ -184,6 +196,12 @@ subroutine solve_electron_conservation
 
         end do
     end do
+    
+    ! ! boundary condition for z = 0 (noiman boundary)
+    ! n_ele(:, 1) = n_ele(:, 2)
+
+    ! boundary condition for z = nz (noiman boundary)
+    n_ele(:, nz) = n_ele(:, nz-1)    
     
     ! boundary condition for r = 0 (noiman boundary)
     n_ele(1, :) = n_ele(2, :)
