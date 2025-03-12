@@ -17,11 +17,11 @@ subroutine solve_ion_pos_conservation
         do j = 2, nz-1
 
             ! central difference for diffusion and source term
-            a = 4.0*D_pos/dz**2  + k_r*n_ele(i, j)
-            bi = D_pos/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_pos/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_pos/dz**2
-            cj = D_pos/dz**2 
+            a = 4.0*D_pos(i, j)/dz**2  + k_r*n_ele(i, j)
+            bi = D_pos(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_pos(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_pos(i, j)/dz**2
+            cj = D_pos(i, j)/dz**2 
             
             ! upwind difference for convection term r direction
             if (E_r(i, j) .ge. 0.0) then
@@ -88,12 +88,12 @@ subroutine solve_ion_neg_conservation
         do j = 2, nz-1
             
             ! central difference for diffusion and source term
-            ! a = 4.0*D_neg/dz**2  + k_r*n_pos(i, j) + k_a*g_a(i, j)
-            a = 4.0*D_neg/dz**2  + k_r*n_pos(i, j)
-            bi = D_neg/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_neg/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_neg/dz**2
-            cj = D_neg/dz**2 
+            ! a = 4.0*D_neg(i, j)/dz**2  + k_r*n_pos(i, j) + k_a*g_a(i, j)
+            a = 4.0*D_neg(i, j)/dz**2  + k_r*n_pos(i, j)
+            bi = D_neg(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_neg(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_neg(i, j)/dz**2
+            cj = D_neg(i, j)/dz**2 
 
             ! upwind difference for convection term r direction
             if (E_r(i, j) .le. 0.0) then
@@ -161,11 +161,11 @@ subroutine solve_electron_conservation
         do j = 2, nz-1
             
             ! central difference for diffusion and source term
-            a = 4.0*D_ele/dz**2 + k_r*n_pos(i, j) + k_a*g_a(i, j)
-            bi = D_ele/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_ele/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_ele/dz**2
-            cj = D_ele/dz**2 
+            a = 4.0*D_ele(i, j)/dz**2 + k_r*n_pos(i, j) + k_a*g_a(i, j)
+            bi = D_ele(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
+            ci = D_ele(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
+            bj = D_ele(i, j)/dz**2
+            cj = D_ele(i, j)/dz**2 
 
             ! upwind difference for convection term r direction
             if (E_r(i, j) .le. 0.0) then

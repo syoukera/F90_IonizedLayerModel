@@ -28,12 +28,6 @@ module variables_module
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
     double precision, parameter :: K_ele = 0.4  ! mobility of electrons [m2/s V]
-    double precision, parameter :: T = 298d0  ! temperature [K]
-
-    ! diffusion coefficients is drived from Einstein Eq.
-    double precision, parameter :: D_pos = K_pos*k_B*T/q_e ! diffusion coefficients of positive ions [m2/s]
-    double precision, parameter :: D_neg = K_neg*k_B*T/q_e ! diffusion coefficients of negative ions [m2/s]
-    double precision, parameter :: D_ele = K_ele*k_B*T/q_e ! diffusion coefficients of electrons [m2/s]
     
     ! parameters for boundary conditions
     double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
@@ -75,6 +69,12 @@ module variables_module
 
     double precision :: g_i(nr, nz) ! spacial profile of ionization
     double precision :: g_a(nr, nz) ! spacial profile of attachement
+    double precision :: T(nr, nz)  ! temperature [K]
+
+    ! diffusion coefficients is drived from Einstein Eq.
+    double precision :: D_pos(nr, nz) ! diffusion coefficients of positive ions [m2/s]
+    double precision :: D_neg(nr, nz) ! diffusion coefficients of negative ions [m2/s]
+    double precision :: D_ele(nr, nz) ! diffusion coefficients of electrons [m2/s]
     
     ! output variable arrays
     double precision :: J_r(nr, nz) ! current density [C/m2]
@@ -159,8 +159,8 @@ module variables_module
         i_edge = 1
 
         ! solve coservation equation
-        do i = 2, nr-1
-            do j = 2, nz-1
+        do i = 1, nr
+            do j = 1, nz
     
                 ! calculate distance_flame
                 ! flame exist if intensity is high
@@ -197,6 +197,15 @@ module variables_module
                 ! fitting to 1D PREMIX of Yuhia Ren
                 ! g_a(i, j) = (erf((flame_height - distance_z(i, j))/2.74084987d-04) + 1.0)/2.0
                 g_a(i, j) = (erf((flame_height - distance_z(i, j))/1.82371556e-04) + 1.0)/2.0
+
+                ! calclate temperature
+                T(i, j) = 9.20603021e+02 * erf((distance_z(i, j) - flame_height) / 2.73035935e-04) + 1.21788749e+03
+
+                ! calculate diffusion coefficients
+                D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
+                D_neg(i, j) = K_neg*k_B*T(i, j)/q_e ! diffusion coefficients of negative ions [m2/s]
+                D_ele(i, j) = K_ele*k_B*T(i, j)/q_e ! diffusion coefficients of electrons [m2/s]
+
             end do
         end do
 
@@ -354,6 +363,12 @@ module variables_module
         open(unit=1, file='output/profile_attachment.dat', status='replace')
         do j = nz, 1, -1
             write(1, *) (g_a(i, j), i = 1, nr)
+        end do
+        close(1)
+
+        open(unit=1, file='output/temperature.dat', status='replace')
+        do j = nz, 1, -1
+            write(1, *) (T(i, j), i = 1, nr)
         end do
         close(1)
 
