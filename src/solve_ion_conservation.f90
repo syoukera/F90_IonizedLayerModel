@@ -8,6 +8,7 @@ subroutine solve_ion_pos_conservation
     integer :: i, j
     ! double precision :: n_pos_old (nr, nz)
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: P, Q ! temporal value for boundary conditions
 
     ! store old value
     n_pos_old = n_pos
@@ -55,9 +56,20 @@ subroutine solve_ion_pos_conservation
     
     ! boundary condition for z = 0 bottom
     ! n_pos(:, 1) = n_pos(:, 2) ! (noiman boundary)
+    n_pos(:, 1) = 0.0d0
 
     ! boundary condition for z = nz top
-    n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
+    ! n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
+    ! zero flux on boundary
+    do i = 2, nr-1
+
+        P = K_pos*(E_z(i, nz) + E_z(i, nz-1))/2.0
+
+        Q = (D_pos(i, nz) + D_pos(i, nz))*dz/2.0
+        
+        n_pos(i, nz) = (Q + P)/(Q - P)*n_pos(i, nz-1)
+
+    end do
 
     ! boundary condition for r = 0 center axis
     n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
@@ -79,6 +91,7 @@ subroutine solve_ion_neg_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_neg_old 
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: P, Q ! temporal value for boundary conditions
 
     ! store old value
     n_neg_old = n_neg
@@ -127,9 +140,20 @@ subroutine solve_ion_neg_conservation
     
     ! boundary condition for z = 0 bottom
     ! n_neg(:, 1) = n_neg(:, 2) ! (noiman boundary)
+    n_neg(:, 1) = 0.0d0
 
     ! boundary condition for z = nz top
-    n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
+    ! n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
+    ! zero flux on boundary
+    do i = 2, nr-1
+
+        P = - K_neg*(E_z(i, nz) + E_z(i, nz-1))/2.0
+
+        Q = (D_neg(i, nz) + D_neg(i, nz))*dz/2.0
+        
+        n_neg(i, nz) = (Q + P)/(Q - P)*n_neg(i, nz-1)
+
+    end do
 
     ! boundary condition for r = 0 center axis
     n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
@@ -152,6 +176,7 @@ subroutine solve_electron_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_ele_old 
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: P, Q ! temporal value for boundary conditions
 
     ! store old value
     n_ele_old = n_ele
@@ -199,9 +224,20 @@ subroutine solve_electron_conservation
     
     ! boundary condition for z = 0 bottom
     ! n_ele(:, 1) = n_ele(:, 2) ! (noiman boundary)
+    n_ele(:, 1) = 0.0d0
 
     ! boundary condition for z = nz top
-    n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
+    ! n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
+    ! zero flux on boundary
+    do i = 2, nr-1
+
+        P = - K_ele*(E_z(i, nz) + E_z(i, nz-1))/2.0
+
+        Q = (D_ele(i, nz) + D_ele(i, nz))*dz/2.0
+        
+        n_ele(i, nz) = (Q + P)/(Q - P)*n_ele(i, nz-1)
+
+    end do
 
     ! boundary condition for r = 0 center axis
     n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
