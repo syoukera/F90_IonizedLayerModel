@@ -53,17 +53,17 @@ subroutine solve_ion_pos_conservation
         end do
     end do
     
-    ! ! boundary condition for z = 0 (noiman boundary)
-    ! n_pos(:, 1) = n_pos(:, 2)
+    ! boundary condition for z = 0 bottom
+    ! n_pos(:, 1) = n_pos(:, 2) ! (noiman boundary)
 
-    ! boundary condition for z = nz (noiman boundary)
-    n_pos(:, nz) = n_pos(:, nz-1)
+    ! boundary condition for z = nz top
+    n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
 
-    ! boundary condition for r = 0 (noiman boundary)
-    n_pos(1, :) = n_pos(2, :)
+    ! boundary condition for r = 0 center axis
+    n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
 
-    ! boundary condition for r = nr (noiman boundary)
-    n_pos(nr, :) = n_pos(nr-1, :)
+    ! boundary condition for r = nr outside
+    n_pos(nr, :) = n_pos(nr-1, :) ! (noiman boundary)
 
     error = error + maxval(abs(n_pos - n_pos_old))
 
@@ -125,17 +125,17 @@ subroutine solve_ion_neg_conservation
         end do 
     end do
     
-    ! ! boundary condition for z = 0 (noiman boundary)
-    ! n_neg(:, 1) = n_neg(:, 2)
+    ! boundary condition for z = 0 bottom
+    ! n_neg(:, 1) = n_neg(:, 2) ! (noiman boundary)
 
-    ! boundary condition for z = nz (noiman boundary)
-    n_neg(:, nz) = n_neg(:, nz-1)
+    ! boundary condition for z = nz top
+    n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
 
-    ! boundary condition for r = 0 (noiman boundary)
-    n_neg(1, :) = n_neg(2, :)
+    ! boundary condition for r = 0 center axis
+    n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
 
-    ! boundary condition for r = nr (noiman boundary)
-    n_neg(nr, :) = n_neg(nr-1, :)
+    ! boundary condition for r = nr outside
+    n_neg(nr, :) = n_neg(nr-1, :) ! (noiman boundary)
 
 
     error = error + maxval(abs(n_neg - n_neg_old))
@@ -197,17 +197,17 @@ subroutine solve_electron_conservation
         end do
     end do
     
-    ! ! boundary condition for z = 0 (noiman boundary)
-    ! n_ele(:, 1) = n_ele(:, 2)
+    ! boundary condition for z = 0 bottom
+    ! n_ele(:, 1) = n_ele(:, 2) ! (noiman boundary)
 
-    ! boundary condition for z = nz (noiman boundary)
-    n_ele(:, nz) = n_ele(:, nz-1)    
-    
-    ! boundary condition for r = 0 (noiman boundary)
-    n_ele(1, :) = n_ele(2, :)
+    ! boundary condition for z = nz top
+    n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
 
-    ! boundary condition for r = nr (noiman boundary)
-    n_ele(nr, :) = n_ele(nr-1, :)
+    ! boundary condition for r = 0 center axis
+    n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
+
+    ! boundary condition for r = nr outside
+    n_ele(nr, :) = n_ele(nr-1, :) ! (noiman boundary)
 
     error = error + maxval(abs(n_ele - n_ele_old))
 
