@@ -3,7 +3,7 @@ module variables_module
 
     ! parameters for grid
     integer, parameter :: nr = 101
-    integer, parameter :: nz = 101
+    integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
     double precision, parameter :: length_r = 20d-3 ! length of calclation domain [m] 
@@ -132,6 +132,7 @@ module variables_module
         character(len=100) :: filename
     
         filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
+        ! filename = "input/flame_height_ch_10kV_posi_nr201"  ! 読み込むファイル名
     
         open(unit=10, file=filename, status="old", action="read")
     
@@ -188,10 +189,9 @@ module variables_module
                 end if
     
                 ! calclate spacial profile of ionization
+                ! g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
                 ! fitting to 1D PREMIX of Yuhia Ren
-                ! g_i(i, j) = exp(- (distance_flame)**2/9.707539122e-09)
                 g_i(i, j) = exp(- (distance_flame)**2/6.554209032d-09)
-
 
                 ! calclate spacial profile of attachment
                 ! fitting to 1D PREMIX of Yuhia Ren
