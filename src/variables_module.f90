@@ -39,11 +39,6 @@ module variables_module
     integer, parameter :: k_step  = 100000
     double precision, parameter :: tolerance = 2.0d-6
 
-    ! double precision, parameter :: omega_V   = 0.5d0 ! relaxation coefficient (1 < omega < 2)
-    ! double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-    ! double precision, parameter :: omega_neg = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-    ! double precision, parameter :: omega_ele = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-
     double precision, parameter :: omega_V   = 0.5d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_pos = 0.05d0 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_neg = 0.05d0 ! relaxation coefficient (1 < omega < 2)
@@ -153,7 +148,7 @@ module variables_module
     subroutine calculate_reaction_profile()
         
         integer :: i, j
-        double precision :: flame_height, distance_flame
+        double precision :: flame_height, distance_flame, r_norm
         integer :: i_edge
 
         ! initial value of flame edge
@@ -161,32 +156,18 @@ module variables_module
 
         ! solve coservation equation
         do i = 1, nr
+
+            ! get normalized r distance
+            r_norm = distance_r(i, 1)/length_r
+
+            ! calculate flame height from fitting eqations in Logistic function
+            flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
+
             do j = 1, nz
-    
-                ! calculate distance_flame
-                ! flame exist if intensity is high
-                if (normalized_intensity(i) .ge. 0.20) then
-    
-                    ! calculate flame height
-                    flame_height = normalized_flame_height(i)*length_z
-    
-                    ! calculated distance to flame height
-                    distance_flame = distance_z(i, j) - flame_height
-    
-                    ! update flame posiiton
-                    i_edge = i
-    
-                ! when flame doesn't exist on the column
-                else
-    
-                    ! calculate flame height at i_edge
-                    flame_height = normalized_flame_height(i_edge)*length_z
-    
-                    ! calculated distance to flame edge
-                    distance_flame = sqrt((distance_r(i, j) - distance_r(i_edge, j))**2 &
-                                        + (distance_z(i, j) - flame_height)**2)
-    
-                end if
+
+                ! calculated distance to flame height
+                distance_flame = distance_z(i, j) - flame_height
+
     
                 ! calclate spacial profile of ionization
                 ! g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
