@@ -45,9 +45,9 @@ module variables_module
     ! double precision, parameter :: omega_ele = 0.005d0 ! relaxation coefficient (1 < omega < 2)
 
     double precision, parameter :: omega_V   = 0.5d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 0.005d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_ele = 0.005d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 0.05d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 0.05d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_ele = 0.05d0 ! relaxation coefficient (1 < omega < 2)
 
     double precision :: error
 
