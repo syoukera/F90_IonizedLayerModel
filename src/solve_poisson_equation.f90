@@ -37,6 +37,7 @@ subroutine solve_poisson_equation
     ! dV/dr = 0.0
     do j = 2, nz-1
         V(nr, j) = (1/4.0D0)*(V(nr, j+1) + 2.0D0*V(nr-1, j) + V(nr, j-1))
+        ! V(nr, j) = V_end/10
     end do
 
     ! calclate error for check convergence
