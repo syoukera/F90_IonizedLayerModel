@@ -161,7 +161,8 @@ module variables_module
             r_norm = distance_r(i, 1)/length_r
 
             ! calculate flame height from fitting eqations in Logistic function
-            flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
+            ! flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
+            flame_height = length_z*(-4.195 * exp(-(r_norm*25.0)**2/(2*4.054**2)) + 18.812)/25.0
 
             do j = 1, nz
 
