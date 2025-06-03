@@ -53,14 +53,36 @@ subroutine solve_ion_pos_conservation
         end do
     end do
     
+
     ! boundary condition for z = 0 bottom
-    n_pos(:, 1) = n_pos(:, 2) ! (noiman boundary)
+    ! n_pos(:, 1) = n_pos(:, 2) ! (noiman boundary)
     ! n_pos(:, 1) = 0.0d0
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, 1) > 0.0) then
+            ! inflow flux equals zero
+            n_pos(i, 1) = n_pos(i, 2)*(1.0/(1.0 + K_pos*E_z(i, 1)*dz/D_pos(i, 1)))
+        else
+            ! inflow flux from electric field
+            n_pos(i, 1) = n_pos(i, 2) - k_i*g_i(i, 1)*dz/(K_pos*E_z(i, 1))
+        end if
+    end do
+
 
     ! boundary condition for z = nz top
-    n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
+    ! n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
     ! n_pos(:, nz) = n_pos(:, nz-1)*(1 + K_pos*dz*E_z(:, nz-1)/D_pos(:, nz-1))
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, nz) > 0.0) then
+            ! inflow flux from electric field
+            n_pos(i, nz) = n_pos(i, nz-1) + k_i*g_i(i, nz)*dz/(K_pos*E_z(i, nz))
+        else
+            ! inflow flux equals zero
+            n_pos(i, nz) = n_pos(i, nz-1)*(1.0/(1.0 - K_pos*E_z(i, nz)*dz/D_pos(i, nz)))
+        end if
+    end do
 
     ! boundary condition for r = 0 center axis
     n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
@@ -130,12 +152,32 @@ subroutine solve_ion_neg_conservation
     
     ! boundary condition for z = 0 bottom
     ! n_neg(:, 1) = n_neg(:, 2) ! (noiman boundary)
-    n_neg(:, 1) = 0.0d0
+    ! n_neg(:, 1) = 0.0d0
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, 1) > 0.0) then
+            ! inflow flux from electric field
+            n_neg(i, 1) = n_neg(i, 2) + k_a*g_a(i, 1)*n_ele(i, 1)*dz/(K_neg*E_z(i, 1))
+        else
+            ! inflow flux equals zero
+            n_neg(i, 1) = n_neg(i, 2)*(1.0/(1.0 - K_neg*E_z(i, 1)*dz/D_neg(i, 1)))
+        end if
+    end do
 
     ! boundary condition for z = nz top
-    n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
+    ! n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
     ! n_neg(:, nz) = n_neg(:, nz-1)*(1 - K_neg*dz*E_z(:, nz-1)/D_neg(:, nz-1))
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, nz) > 0.0) then
+            ! inflow flux equals zero
+            n_neg(i, nz) = n_neg(i, nz-1)*(1.0/(1.0 + K_neg*E_z(i, nz)*dz/D_neg(i, nz)))
+        else
+            ! inflow flux from electric field
+            n_neg(i, nz) = n_neg(i, nz-1) - k_a*g_a(i, nz)*n_ele(i, nz)*dz/(K_neg*E_z(i, nz))
+        end if
+    end do
 
     ! boundary condition for r = 0 center axis
     n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
@@ -205,12 +247,32 @@ subroutine solve_electron_conservation
     
     ! boundary condition for z = 0 bottom
     ! n_ele(:, 1) = n_ele(:, 2) ! (noiman boundary)
-    n_ele(:, 1) = 0.0d0
+    ! n_ele(:, 1) = 0.0d0
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, 1) > 0.0) then
+            ! inflow flux from electric field
+            n_ele(i, 1) = n_ele(i, 2) + k_i*g_i(i, 1)*dz/(K_ele*E_z(i, 1))
+        else
+            ! inflow flux equals zero
+            n_ele(i, 1) = n_ele(i, 2)*(1.0/(1.0 - K_ele*E_z(i, 1)*dz/D_ele(i, 1)))
+        end if
+    end do
 
     ! boundary condition for z = nz top
-    n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
+    ! n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
     ! n_ele(:, nz) = n_ele(:, nz-1)*(1 - K_ele*dz*E_z(:, nz-1)/D_ele(:, nz-1))
+    ! Table 1 of Yihua Ren
+    do i = 2, nr-1
+        if (E_z(i, nz) > 0.0) then
+            ! inflow flux equals zero
+            n_ele(i, nz) = n_ele(i, nz-1)*(1.0/(1.0 + K_ele*E_z(i, nz)*dz/D_ele(i, nz)))
+        else
+            ! inflow flux from electric field
+            n_ele(i, nz) = n_ele(i, nz-1) - k_i*g_i(i, nz)*dz/(K_ele*E_z(i, nz))
+        end if
+    end do
 
     ! boundary condition for r = 0 center axis
     n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
