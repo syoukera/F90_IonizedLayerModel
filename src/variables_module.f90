@@ -2,12 +2,12 @@ module variables_module
     implicit none
 
     ! parameters for grid
-    integer, parameter :: nr = 101
+    integer, parameter :: nr = 201
     integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
-    double precision, parameter :: length_r = 20d-3 ! length of calclation domain [m] 
-    double precision, parameter :: length_z = 20d-3 ! length of calclation domain [m] 
+    double precision, parameter :: length_r = 25d-3 ! length of calclation domain [m] 
+    double precision, parameter :: length_z = 25d-3 ! length of calclation domain [m] 
     double precision, parameter :: dr = length_r/(nr - 1.0) ! distance between grid points [m]
     double precision, parameter :: dz = length_z/(nz - 1.0) ! distance between grid points [m]
 
@@ -31,7 +31,7 @@ module variables_module
     
     ! parameters for boundary conditions
     double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
-    double precision, parameter :: V_end        = 3d3 ! voltage for end point [V]
+    double precision, parameter :: V_end        = -1.2d3 ! voltage for end point [V]
 
     ! parameters for computation
     integer, parameter :: k_start = 1
@@ -121,29 +121,29 @@ module variables_module
 
     end subroutine initialize_variables
 
-    subroutine load_flame_height()
+    ! subroutine load_flame_height()
 
-        integer :: i
-        character(len=100) :: filename
+    !     integer :: i
+    !     character(len=100) :: filename
     
-        filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
-        ! filename = "input/flame_height_ch_10kV_posi_nr201"  ! 読み込むファイル名
+    !     filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
+    !     ! filename = "input/flame_height_ch_10kV_posi_nr201"  ! 読み込むファイル名
     
-        open(unit=10, file=filename, status="old", action="read")
+    !     open(unit=10, file=filename, status="old", action="read")
     
-        ! データを1行ずつ読み込み
-        do i = 1, nr
-            read(10, *) normalized_flame_height(i), normalized_intensity(i)
-        end do
+    !     ! データを1行ずつ読み込み
+    !     do i = 1, nr
+    !         read(10, *) normalized_flame_height(i), normalized_intensity(i)
+    !     end do
     
-        close(10)
+    !     close(10)
     
-        ! ! 結果を確認
-        ! do i = 1, nr
-        !     print *, i, normalized_flame_height(i), normalized_intensity(i)
-        ! end do
+    !     ! ! 結果を確認
+    !     ! do i = 1, nr
+    !     !     print *, i, normalized_flame_height(i), normalized_intensity(i)
+    !     ! end do
 
-    end subroutine load_flame_height
+    ! end subroutine load_flame_height
 
     subroutine calculate_reaction_profile()
         
