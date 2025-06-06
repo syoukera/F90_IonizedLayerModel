@@ -8,6 +8,7 @@ subroutine solve_ion_pos_conservation
     integer :: i, j
     ! double precision :: n_pos_old (nr, nz)
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: ddVdr ! 2nd derivetive of voltage
 
     ! store old value
     n_pos_old = n_pos
@@ -85,7 +86,16 @@ subroutine solve_ion_pos_conservation
     end do
 
     ! boundary condition for r = 0 center axis
-    n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
+    ! n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
+    ! Table 1 of Yihua Ren
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+
+        ! update n_pos
+        n_pos(1, j) = (5.0*n_pos(2, j) - 4.0*n_pos(3, j) + n_pos(4, j))/2.0 &
+                    + ddVdr*K_pos*(dr)**2/(2.0*D_pos(1, j))
+    end do
 
     ! boundary condition for r = nr outside
     n_pos(nr, :) = n_pos(nr-1, :) ! (noiman boundary)
@@ -104,6 +114,7 @@ subroutine solve_ion_neg_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_neg_old 
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: ddVdr ! 2nd derivetive of voltage
 
     ! store old value
     n_neg_old = n_neg
@@ -180,7 +191,17 @@ subroutine solve_ion_neg_conservation
     end do
 
     ! boundary condition for r = 0 center axis
-    n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
+    ! n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
+    ! Table 1 of Yihua Ren
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+
+        ! update n_neg
+        n_neg(1, j) = (5.0*n_neg(2, j) - 4.0*n_neg(3, j) + n_neg(4, j))/2.0 &
+                    - ddVdr*K_neg*(dr)**2/(2.0*D_neg(1, j))
+    end do
+
 
     ! boundary condition for r = nr outside
     n_neg(nr, :) = n_neg(nr-1, :) ! (noiman boundary)
@@ -200,6 +221,7 @@ subroutine solve_electron_conservation
     integer :: i, j
     ! double precision, dimension(nr, nz) :: n_ele_old 
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
+    double precision :: ddVdr ! 2nd derivetive of voltage
 
     ! store old value
     n_ele_old = n_ele
@@ -275,7 +297,17 @@ subroutine solve_electron_conservation
     end do
 
     ! boundary condition for r = 0 center axis
-    n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
+    ! n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
+    ! Table 1 of Yihua Ren
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+
+        ! update n_ele
+        n_ele(1, j) = (5.0*n_ele(2, j) - 4.0*n_ele(3, j) + n_ele(4, j))/2.0 &
+                    - ddVdr*K_ele*(dr)**2/(2.0*D_ele(1, j))
+    end do
+
 
     ! boundary condition for r = nr outside
     n_ele(nr, :) = n_ele(nr-1, :) ! (noiman boundary)
