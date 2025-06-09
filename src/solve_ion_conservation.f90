@@ -90,11 +90,11 @@ subroutine solve_ion_pos_conservation
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
         ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
 
         ! update n_pos
         n_pos(1, j) = (5.0*n_pos(2, j) - 4.0*n_pos(3, j) + n_pos(4, j))/2.0 &
-                    + ddVdr*K_pos*(dr)**2/(2.0*D_pos(1, j))
+                    + (-ddVdr)*K_pos*(dr)**2/(2.0*D_pos(1, j))
     end do
 
     ! boundary condition for r = nr outside
@@ -195,11 +195,11 @@ subroutine solve_ion_neg_conservation
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
         ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
 
         ! update n_neg
         n_neg(1, j) = (5.0*n_neg(2, j) - 4.0*n_neg(3, j) + n_neg(4, j))/2.0 &
-                    - ddVdr*K_neg*(dr)**2/(2.0*D_neg(1, j))
+                    - (-ddVdr)*K_neg*(dr)**2/(2.0*D_neg(1, j))
     end do
 
 
@@ -301,11 +301,11 @@ subroutine solve_electron_conservation
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
         ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))
+        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
 
         ! update n_ele
         n_ele(1, j) = (5.0*n_ele(2, j) - 4.0*n_ele(3, j) + n_ele(4, j))/2.0 &
-                    - ddVdr*K_ele*(dr)**2/(2.0*D_ele(1, j))
+                    - (-ddVdr)*K_ele*(dr)**2/(2.0*D_ele(1, j))
     end do
 
 
