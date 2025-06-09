@@ -98,7 +98,16 @@ subroutine solve_ion_pos_conservation
     end do
 
     ! boundary condition for r = nr outside
-    n_pos(nr, :) = n_pos(nr-1, :) ! (noiman boundary)
+    ! n_pos(nr, :) = n_pos(nr-1, :) ! (noiman boundary)
+    ! Table 1 of Yihua Ren
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
+
+        ! update n_pos
+        n_pos(nr, j) = (5.0*n_pos(nr-1, j) - 4.0*n_pos(nr-2, j) + n_pos(nr-3, j))/2.0  &
+                    + (-ddVdr)*K_pos*(dr**2)/(2.0*D_pos(nr, j))
+    end do
 
     error = error + maxval(abs(n_pos - n_pos_old))
 
@@ -204,7 +213,15 @@ subroutine solve_ion_neg_conservation
 
 
     ! boundary condition for r = nr outside
-    n_neg(nr, :) = n_neg(nr-1, :) ! (noiman boundary)
+    ! n_neg(nr, :) = n_neg(nr-1, :) ! (noiman boundary)
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
+
+        ! update n_neg
+        n_neg(nr, j) = (5.0*n_neg(nr-1, j) - 4.0*n_neg(nr-2, j) + n_neg(nr-3, j))/2.0  &
+                    - (-ddVdr)*K_neg*(dr**2)/(2.0*D_neg(nr, j))
+    end do
 
 
     error = error + maxval(abs(n_neg - n_neg_old))
@@ -310,7 +327,15 @@ subroutine solve_electron_conservation
 
 
     ! boundary condition for r = nr outside
-    n_ele(nr, :) = n_ele(nr-1, :) ! (noiman boundary)
+    ! n_ele(nr, :) = n_ele(nr-1, :) ! (noiman boundary)
+    do j = 2, nz-1
+        ! 2nd derivetive of voltage
+        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
+
+        ! update n_ele
+        n_ele(nr, j) = (5.0*n_ele(nr-1, j) - 4.0*n_ele(nr-2, j) + n_ele(nr-3, j))/2.0  &
+                    - (-ddVdr)*K_ele*(dr**2)/(2.0*D_ele(nr, j))
+    end do
 
     error = error + maxval(abs(n_ele - n_ele_old))
 
