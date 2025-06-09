@@ -2,7 +2,7 @@ module variables_module
     implicit none
 
     ! parameters for grid
-    integer, parameter :: nr = 201
+    integer, parameter :: nr = 101
     integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
@@ -98,8 +98,7 @@ module variables_module
                 n_neg(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
                 ! n_ele(i, j) = 0.0d0
                 n_ele(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                
-                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
+
             end do
         end do
 
@@ -117,7 +116,10 @@ module variables_module
             end do
         end do
 
+        call update_charge_density()
+
         call update_electric_field()
+        
 
     end subroutine initialize_variables
 
@@ -209,9 +211,6 @@ module variables_module
                 J_z(i, j) = n_pos(i, j)*q_e*K_pos*E_z(i, j) &
                           - n_neg(i, j)*q_e*K_neg*E_z(i, j) &
                           - n_ele(i, j)*q_e*K_ele*E_z(i, j)
-                
-                ! calclate density of electric charge
-                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
 
                 ! electric body force for r direction
                 F_r = rho(i, j)*E_r(i, j)
@@ -223,6 +222,19 @@ module variables_module
         end do
 
     end subroutine calculate_output_variables
+
+    subroutine update_charge_density()
+
+        integer :: i, j
+
+        ! calclate density of electric charge
+        do i = 1, nr
+            do j = 1, nz
+                rho(i, j) = (n_pos(i, j) - n_neg(i, j) - n_ele(i, j))*q_e
+            end do
+        end do
+
+    end subroutine update_charge_density
 
     subroutine update_electric_field()
         integer :: i, j
