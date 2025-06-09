@@ -123,30 +123,6 @@ module variables_module
 
     end subroutine initialize_variables
 
-    ! subroutine load_flame_height()
-
-    !     integer :: i
-    !     character(len=100) :: filename
-    
-    !     filename = "input/flame_height_ch_10kV_posi_nr101"  ! 読み込むファイル名
-    !     ! filename = "input/flame_height_ch_10kV_posi_nr201"  ! 読み込むファイル名
-    
-    !     open(unit=10, file=filename, status="old", action="read")
-    
-    !     ! データを1行ずつ読み込み
-    !     do i = 1, nr
-    !         read(10, *) normalized_flame_height(i), normalized_intensity(i)
-    !     end do
-    
-    !     close(10)
-    
-    !     ! ! 結果を確認
-    !     ! do i = 1, nr
-    !     !     print *, i, normalized_flame_height(i), normalized_intensity(i)
-    !     ! end do
-
-    ! end subroutine load_flame_height
-
     subroutine calculate_reaction_profile()
         
         integer :: i, j
@@ -391,41 +367,5 @@ module variables_module
         close(1)
 
     end subroutine export_variables
-
-    ! subroutine import_variables(k)
-    !     implicit none
-    !     integer, intent(in) :: k
-    !     integer :: i
-    !     character(len=60) :: filename
-        
-    !     ! ! calculate current density
-    !     ! do i = 2, nz-1
-
-    !     !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dz)) - K_pos*n_pos(i)*E(i))*(+q_e) &
-    !     !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dz)) + K_neg*n_neg(i)*E(i))*(-q_e) &
-    !     !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dz)) + K_ele*n_ele(i)*E(i))*(-q_e)
-
-    !     ! end do
-
-        
-    !     ! ! create a unique filename using the integer i
-    !     ! write(filename, '("potential_1d_", I0, ".dat")') k
-    !     filename = 'output/1kV_omega_V1.0_omega_ion0.05/potential_1d_100000.dat'
-        
-    !     print *, "Import from file: ", filename
-
-    !     ! open file
-    !     open(unit=1, file=filename, status='old')
-
-    !     ! skip header
-    !     read(1, '(A)')        
-        
-    !     do i = 1, nz
-    !         read(1, '(7E24.16)') X(i), rho(i), V(i), E(i), n_pos(i), n_neg(i), n_ele(i)
-    !     end do
-
-    !     close(1)
-
-    ! end subroutine import_variables
 
 end module variables_module
