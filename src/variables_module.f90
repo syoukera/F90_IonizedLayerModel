@@ -27,7 +27,10 @@ module variables_module
     double precision, parameter :: k_a = 4.73873934d+07 ! rate coeficient of attachment  1/s
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
-    double precision, parameter :: K_ele = 0.4  ! mobility of electrons [m2/s V]
+    double precision, parameter :: K_ele = 0.4    ! mobility of electrons [m2/s V]
+    double precision, parameter :: Z_pos = 1.0    ! polarity of positive ion's charge [-]
+    double precision, parameter :: Z_neg = - 1.0  ! polarity of negative ion's charge [-]
+    double precision, parameter :: Z_ele = - 1.0  ! polarity of electron's charge [-]
     
     ! parameters for boundary conditions
     double precision, parameter :: V_start      = 0.0d0 ! valtage for initial point [V]
