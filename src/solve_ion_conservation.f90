@@ -211,16 +211,24 @@ subroutine solve_ion_neg_conservation
             !     a = a  + (K_neg/dz)*E_z(i, j)
             !     bj = bj + (K_neg/dz)*E_z(i, j+1)
             ! endif
+            
+            ! a = a &
+            !   + (K_neg/(r_p*dr)) * (r_e*max(Z_neg*E_r_e, 0.0) - r_w*min(Z_neg*E_r_w, 0.0)) &
+            !   + (K_neg/dz) * (max(Z_neg*E_z_n, 0.0) - min(Z_neg*E_z_s, 0.0))
+            ! bi = bi - (K_neg/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
+            ! ci = ci + (K_neg/(r_p*dr)) * r_w * max(Z_neg*E_r_w, 0.0)
+            ! bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
+            ! cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
 
             ! upwind difference for convection term r direction
-            a = a - (K_neg/dr) * min(E_r(i, j), 0.0) + (K_neg/dr) * max(E_r(i, j), 0.0)
-            ci = ci - (K_neg/dr) * (distance_r(i-1, j)/distance_r(i, j)) * min(E_r(i-1, j), 0.0)
-            bi = bi + (K_neg/dr) * (distance_r(i+1, j)/distance_r(i, j)) * max(E_r(i+1, j), 0.0)
+            a = a + (K_neg/dr) * max(Z_neg*E_r(i, j), 0.0) - (K_neg/dr) * min(Z_neg*E_r(i, j), 0.0)
+            ci = ci + (K_neg/dr) * (distance_r(i-1, j)/distance_r(i, j)) * max(Z_neg*E_r(i-1, j), 0.0)
+            bi = bi - (K_neg/dr) * (distance_r(i+1, j)/distance_r(i, j)) * min(Z_neg*E_r(i+1, j), 0.0)
 
             ! upwind difference for convection term z direction
-            a = a - (K_neg/dz) * min(E_z(i, j), 0.0) + (K_neg/dz) * max(E_z(i, j), 0.0)
-            bj = bj + (K_neg/dz) * max(E_z(i, j+1), 0.0)
-            cj = cj - (K_neg/dz) * min(E_z(i, j-1), 0.0)
+            a = a + (K_neg/dz) * max(Z_neg*E_z(i, j), 0.0) - (K_neg/dz) * min(Z_neg*E_z(i, j), 0.0)
+            bj = bj - (K_neg/dz) * min(Z_neg*E_z(i, j+1), 0.0)
+            cj = cj + (K_neg/dz) * max(Z_neg*E_z(i, j-1), 0.0)
             
             d = k_a*g_a(i, j)*n_ele(i, j)
 
