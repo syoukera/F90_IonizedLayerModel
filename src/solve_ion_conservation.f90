@@ -74,28 +74,27 @@ subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_
     ! n_pos(:, 1) = 0.0d0
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (E_z(i, 1) > 0.0) then
+        if (Z_pos*E_z(i, 1) > 0.0) then
             ! inflow flux equals zero
-            n_pos(i, 1) = n_pos(i, 2)*(1.0/(1.0 + K_pos*E_z(i, 1)*dz/D_pos(i, 1)))
+            n_pos(i, 1) = n_pos(i, 2)*(1.0/(1.0 + K_pos*Z_pos*E_z(i, 1)*dz/D_pos(i, 1)))
         else
             ! inflow flux from electric field
-            n_pos(i, 1) = n_pos(i, 2) - Su_pos(i, 1)*dz/(K_pos*E_z(i, 1))
+            n_pos(i, 1) = n_pos(i, 2) - Su_pos(i, 1)*dz/(K_pos*Z_pos*E_z(i, 1))
         end if
     end do
-
-
+    
     ! boundary condition for z = nz top
     ! n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
     ! n_pos(:, nz) = n_pos(:, nz-1)*(1 + K_pos*dz*E_z(:, nz-1)/D_pos(:, nz-1))
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (E_z(i, nz) > 0.0) then
+        if (Z_pos*E_z(i, nz) > 0.0) then
             ! inflow flux from electric field
-            n_pos(i, nz) = n_pos(i, nz-1) + Su_pos(i, nz)*dz/(K_pos*E_z(i, nz))
+            n_pos(i, nz) = n_pos(i, nz-1) + Su_pos(i, nz)*dz/(K_pos*Z_pos*E_z(i, nz))
         else
             ! inflow flux equals zero
-            n_pos(i, nz) = n_pos(i, nz-1)*(1.0/(1.0 - K_pos*E_z(i, nz)*dz/D_pos(i, nz)))
+            n_pos(i, nz) = n_pos(i, nz-1)*(1.0/(1.0 - K_pos*Z_pos*E_z(i, nz)*dz/D_pos(i, nz)))
         end if
     end do
 
@@ -108,7 +107,7 @@ subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_
 
         ! update n_pos
         n_pos(1, j) = (5.0*n_pos(2, j) - 4.0*n_pos(3, j) + n_pos(4, j))/2.0 &
-                    + (-ddVdr)*K_pos*(dr)**2/(2.0*D_pos(1, j))
+                    + (-ddVdr)*K_pos*Z_pos*(dr)**2/(2.0*D_pos(1, j))
     end do
 
     ! boundary condition for r = nr outside
@@ -120,7 +119,7 @@ subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_
 
         ! update n_pos
         n_pos(nr, j) = (5.0*n_pos(nr-1, j) - 4.0*n_pos(nr-2, j) + n_pos(nr-3, j))/2.0  &
-                    + (-ddVdr)*K_pos*(dr**2)/(2.0*D_pos(nr, j))
+                    + (-ddVdr)*K_pos*Z_pos*(dr**2)/(2.0*D_pos(nr, j))
     end do
 
     error = error + maxval(abs(n_pos - n_pos_old))
