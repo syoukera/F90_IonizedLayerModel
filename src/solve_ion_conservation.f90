@@ -19,13 +19,6 @@ subroutine solve_ion_pos_conservation
     do i = 2, nr-1
         do j = 2, nz-1
 
-            ! central difference for diffusion and source term
-            a = 4.0*D_pos(i, j)/dz**2  + k_r*n_ele(i, j)
-            bi = D_pos(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_pos(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_pos(i, j)/dz**2
-            cj = D_pos(i, j)/dz**2 
-
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -36,7 +29,14 @@ subroutine solve_ion_pos_conservation
             E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
             E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
-            
+
+            ! central difference for diffusion and source term
+            a = 2.0*D_pos(i, j)/(dz**2) + D_pos(i, j)/(r_p*dr**2)*(r_e + r_w) + k_r*n_ele(i, j)
+            bi = D_pos(i, j)/(r_p*dr**2)*r_e
+            ci = D_pos(i, j)/(r_p*dr**2)*r_w
+            bj = D_pos(i, j)/(dz**2)
+            cj = D_pos(i, j)/(dz**2)
+
             ! upwind difference for convection term r direction
             a = a + (K_pos/(r_p*dr)) * (r_e*max(Z_pos*E_r_e, 0.0) - r_w*min(Z_pos*E_r_w, 0.0))
             bi = bi - (K_pos/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
@@ -136,15 +136,7 @@ subroutine solve_ion_neg_conservation
     ! solve coservation equation
     do i = 2, nr-1
         do j = 2, nz-1
-            
-            ! central difference for diffusion and source term
-            ! a = 4.0*D_neg(i, j)/dz**2  + k_r*n_pos(i, j) + k_a*g_a(i, j)
-            a = 4.0*D_neg(i, j)/dz**2  + k_r*n_pos(i, j)
-            bi = D_neg(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_neg(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_neg(i, j)/dz**2
-            cj = D_neg(i, j)/dz**2 
-
+    
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -155,6 +147,13 @@ subroutine solve_ion_neg_conservation
             E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
             E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
+            
+            ! central difference for diffusion and source term
+            a = 2.0*D_neg(i, j)/(dz**2) + D_neg(i, j)/(r_p*dr**2)*(r_e + r_w) + k_r*n_neg(i, j)
+            bi = D_neg(i, j)/(r_p*dr**2)*r_e
+            ci = D_neg(i, j)/(r_p*dr**2)*r_w
+            bj = D_neg(i, j)/(dz**2)
+            cj = D_neg(i, j)/(dz**2)
             
             ! upwind difference for convection term r direction
             a = a + (K_neg/(r_p*dr)) * (r_e*max(Z_neg*E_r_e, 0.0) - r_w*min(Z_neg*E_r_w, 0.0))
@@ -255,13 +254,6 @@ subroutine solve_electron_conservation
     do i = 2, nr-1
         do j = 2, nz-1
             
-            ! central difference for diffusion and source term
-            a = 4.0*D_ele(i, j)/dz**2 + k_r*n_pos(i, j) + k_a*g_a(i, j)
-            bi = D_ele(i, j)/dz**2*(1.0d0 + dz/2.0d0/distance_r(i, j))
-            ci = D_ele(i, j)/dz**2*(1.0d0 - dz/2.0d0/distance_r(i, j))
-            bj = D_ele(i, j)/dz**2
-            cj = D_ele(i, j)/dz**2 
-            
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -272,6 +264,13 @@ subroutine solve_electron_conservation
             E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
             E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
+
+            ! central difference for diffusion and source term
+            a = 2.0*D_ele(i, j)/(dz**2) + D_ele(i, j)/(r_p*dr**2)*(r_e + r_w) + k_a*g_a(i, j)
+            bi = D_ele(i, j)/(r_p*dr**2)*r_e
+            ci = D_ele(i, j)/(r_p*dr**2)*r_w
+            bj = D_ele(i, j)/(dz**2)
+            cj = D_ele(i, j)/(dz**2)
             
             ! upwind difference for convection term r direction
             a = a + (K_ele/(r_p*dr)) * (r_e*max(Z_ele*E_r_e, 0.0) - r_w*min(Z_ele*E_r_w, 0.0))
