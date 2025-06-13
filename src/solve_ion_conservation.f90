@@ -1,6 +1,5 @@
-subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_pos, Su_pos, omega_pos)
-    use variables_module, only: nr, nz, distance_r, E_r, E_z, dz, dr, &
-                                error, k_i, V
+subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion, Su_ion, omega_ion)
+    use variables_module, only: nr, nz, dz, dr, distance_r, E_r, E_z, V, error 
                                 
     implicit none
 
@@ -8,23 +7,23 @@ subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_
     ! double precision, intent(in) :: dz, dt
     ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
     integer :: i, j
-    ! double precision :: n_pos_old (nr, nz)
+    ! double precision :: n_ion_old (nr, nz)
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
     double precision :: ddVdr ! 2nd derivetive of voltage
     double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
     double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
 
-    double precision, intent(inout) :: n_pos(nr, nz)
-    double precision, intent(inout) :: n_pos_old(nr, nz)
-    double precision, intent(in) :: D_pos(nr, nz)
-    double precision, intent(in) :: Sp_pos(nr, nz)
-    double precision, intent(in) :: Su_pos(nr, nz)
-    double precision, intent(in) :: K_pos
-    double precision, intent(in) :: Z_pos
-    double precision, intent(in) :: omega_pos
+    double precision, intent(inout) :: n_ion(nr, nz)
+    double precision, intent(inout) :: n_ion_old(nr, nz)
+    double precision, intent(in) :: D_ion(nr, nz)
+    double precision, intent(in) :: Sp_ion(nr, nz)
+    double precision, intent(in) :: Su_ion(nr, nz)
+    double precision, intent(in) :: K_ion
+    double precision, intent(in) :: Z_ion
+    double precision, intent(in) :: omega_ion
 
     ! store old value
-    n_pos_old = n_pos
+    n_ion_old = n_ion
 
     ! solve coservation equation
     do i = 2, nr-1
@@ -42,319 +41,86 @@ subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
 
             ! central difference for diffusion and source term
-            a = 2.0*D_pos(i, j)/(dz**2) + D_pos(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_pos(i, j)
-            bi = D_pos(i, j)/(r_p*dr**2)*r_e
-            ci = D_pos(i, j)/(r_p*dr**2)*r_w
-            bj = D_pos(i, j)/(dz**2)
-            cj = D_pos(i, j)/(dz**2)
+            a = 2.0*D_ion(i, j)/(dz**2) + D_ion(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ion(i, j)
+            bi = D_ion(i, j)/(r_p*dr**2)*r_e
+            ci = D_ion(i, j)/(r_p*dr**2)*r_w
+            bj = D_ion(i, j)/(dz**2)
+            cj = D_ion(i, j)/(dz**2)
 
             ! upwind difference for convection term r direction
-            a = a + (K_pos/(r_p*dr)) * (r_e*max(Z_pos*E_r_e, 0.0) - r_w*min(Z_pos*E_r_w, 0.0))
-            bi = bi - (K_pos/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
-            ci = ci + (K_pos/(r_p*dr)) * r_w * max(Z_pos*E_r_w, 0.0)
+            a = a + (K_ion/(r_p*dr)) * (r_e*max(Z_ion*E_r_e, 0.0) - r_w*min(Z_ion*E_r_w, 0.0))
+            bi = bi - (K_ion/(r_p*dr)) * r_e * min(Z_ion*E_r_e, 0.0)
+            ci = ci + (K_ion/(r_p*dr)) * r_w * max(Z_ion*E_r_w, 0.0)
 
             ! upwind difference for convection term z direction
-            a = a  + (K_pos/dz) * (max(Z_pos*E_z_n, 0.0) - min(Z_pos*E_z_s, 0.0))
-            bj = bj - (K_pos/dz) * min(Z_pos*E_z_n, 0.0)
-            cj = cj + (K_pos/dz) * max(Z_pos*E_z_s, 0.0)
+            a = a  + (K_ion/dz) * (max(Z_ion*E_z_n, 0.0) - min(Z_ion*E_z_s, 0.0))
+            bj = bj - (K_ion/dz) * min(Z_ion*E_z_n, 0.0)
+            cj = cj + (K_ion/dz) * max(Z_ion*E_z_s, 0.0)
 
-            d = Su_pos(i, j)
+            d = Su_ion(i, j)
 
-            ! calclate next n_pos(i) using SOR-method
-            n_pos(i, j) = (1.0d0 - omega_pos)*n_pos(i, j) &
-                    + omega_pos*(1.0/a)*(bi*n_pos(i+1, j) + ci*n_pos(i-1, j) &
-                                       + bj*n_pos(i, j+1) + cj*n_pos(i, j-1) + d)
+            ! calclate next n_ion(i) using SOR-method
+            n_ion(i, j) = (1.0d0 - omega_ion)*n_ion(i, j) &
+                    + omega_ion*(1.0/a)*(bi*n_ion(i+1, j) + ci*n_ion(i-1, j) &
+                                       + bj*n_ion(i, j+1) + cj*n_ion(i, j-1) + d)
                         
         end do
     end do
     
 
     ! boundary condition for z = 0 bottom
-    ! n_pos(:, 1) = n_pos(:, 2) ! (noiman boundary)
-    ! n_pos(:, 1) = 0.0d0
+    ! n_ion(:, 1) = n_ion(:, 2) ! (noiman boundary)
+    ! n_ion(:, 1) = 0.0d0
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (Z_pos*E_z(i, 1) > 0.0) then
+        if (Z_ion*E_z(i, 1) > 0.0) then
             ! inflow flux equals zero
-            n_pos(i, 1) = n_pos(i, 2)*(1.0/(1.0 + K_pos*Z_pos*E_z(i, 1)*dz/D_pos(i, 1)))
+            n_ion(i, 1) = n_ion(i, 2)*(1.0/(1.0 + K_ion*Z_ion*E_z(i, 1)*dz/D_ion(i, 1)))
         else
             ! inflow flux from electric field
-            n_pos(i, 1) = n_pos(i, 2) - Su_pos(i, 1)*dz/(K_pos*Z_pos*E_z(i, 1))
+            n_ion(i, 1) = n_ion(i, 2) - Su_ion(i, 1)*dz/(K_ion*Z_ion*E_z(i, 1))
         end if
     end do
     
     ! boundary condition for z = nz top
-    ! n_pos(:, nz) = n_pos(:, nz-1) ! (noiman boundary)
+    ! n_ion(:, nz) = n_ion(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
-    ! n_pos(:, nz) = n_pos(:, nz-1)*(1 + K_pos*dz*E_z(:, nz-1)/D_pos(:, nz-1))
+    ! n_ion(:, nz) = n_ion(:, nz-1)*(1 + K_ion*dz*E_z(:, nz-1)/D_ion(:, nz-1))
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (Z_pos*E_z(i, nz) > 0.0) then
+        if (Z_ion*E_z(i, nz) > 0.0) then
             ! inflow flux from electric field
-            n_pos(i, nz) = n_pos(i, nz-1) + Su_pos(i, nz)*dz/(K_pos*Z_pos*E_z(i, nz))
+            n_ion(i, nz) = n_ion(i, nz-1) + Su_ion(i, nz)*dz/(K_ion*Z_ion*E_z(i, nz))
         else
             ! inflow flux equals zero
-            n_pos(i, nz) = n_pos(i, nz-1)*(1.0/(1.0 - K_pos*Z_pos*E_z(i, nz)*dz/D_pos(i, nz)))
+            n_ion(i, nz) = n_ion(i, nz-1)*(1.0/(1.0 - K_ion*Z_ion*E_z(i, nz)*dz/D_ion(i, nz)))
         end if
     end do
 
     ! boundary condition for r = 0 center axis
-    ! n_pos(1, :) = n_pos(2, :) ! (noiman boundary)
+    ! n_ion(1, :) = n_ion(2, :) ! (noiman boundary)
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
         ! 2nd derivetive of voltage
         ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
 
-        ! update n_pos
-        n_pos(1, j) = (5.0*n_pos(2, j) - 4.0*n_pos(3, j) + n_pos(4, j))/2.0 &
-                    + (-ddVdr)*K_pos*Z_pos*(dr)**2/(2.0*D_pos(1, j))
+        ! update n_ion
+        n_ion(1, j) = (5.0*n_ion(2, j) - 4.0*n_ion(3, j) + n_ion(4, j))/2.0 &
+                    + (-ddVdr)*K_ion*Z_ion*(dr)**2/(2.0*D_ion(1, j))
     end do
 
     ! boundary condition for r = nr outside
-    ! n_pos(nr, :) = n_pos(nr-1, :) ! (noiman boundary)
+    ! n_ion(nr, :) = n_ion(nr-1, :) ! (noiman boundary)
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
         ! 2nd derivetive of voltage
         ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
 
-        ! update n_pos
-        n_pos(nr, j) = (5.0*n_pos(nr-1, j) - 4.0*n_pos(nr-2, j) + n_pos(nr-3, j))/2.0  &
-                    + (-ddVdr)*K_pos*Z_pos*(dr**2)/(2.0*D_pos(nr, j))
+        ! update n_ion
+        n_ion(nr, j) = (5.0*n_ion(nr-1, j) - 4.0*n_ion(nr-2, j) + n_ion(nr-3, j))/2.0  &
+                    + (-ddVdr)*K_ion*Z_ion*(dr**2)/(2.0*D_ion(nr, j))
     end do
 
-    error = error + maxval(abs(n_pos - n_pos_old))
+    error = error + maxval(abs(n_ion - n_ion_old))
 
-end subroutine solve_ion_pos_conservation
-
-subroutine solve_ion_neg_conservation
-    use variables_module
-    implicit none
-
-    ! integer, intent(in) :: nz
-    ! double precision, intent(in) :: dz, dt
-    ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
-    integer :: i, j
-    ! double precision, dimension(nr, nz) :: n_neg_old 
-    double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: ddVdr ! 2nd derivetive of voltage
-    double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
-    double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
-
-    ! store old value
-    n_neg_old = n_neg
-
-    ! solve coservation equation
-    do i = 2, nr-1
-        do j = 2, nz-1
-    
-            ! prepare man value of r
-            r_p = distance_r(i, j)
-            r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
-            r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
-
-            ! prepare mean value of E
-            E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
-            E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
-            E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
-            E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
-            
-            ! central difference for diffusion and source term
-            a = 2.0*D_neg(i, j)/(dz**2) + D_neg(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_neg(i, j)
-            bi = D_neg(i, j)/(r_p*dr**2)*r_e
-            ci = D_neg(i, j)/(r_p*dr**2)*r_w
-            bj = D_neg(i, j)/(dz**2)
-            cj = D_neg(i, j)/(dz**2)
-            
-            ! upwind difference for convection term r direction
-            a = a + (K_neg/(r_p*dr)) * (r_e*max(Z_neg*E_r_e, 0.0) - r_w*min(Z_neg*E_r_w, 0.0))
-            bi = bi - (K_neg/(r_p*dr)) * r_e * min(Z_neg*E_r_e, 0.0)
-            ci = ci + (K_neg/(r_p*dr)) * r_w * max(Z_neg*E_r_w, 0.0)
-
-            ! upwind difference for convection term z direction
-            a = a  + (K_neg/dz) * (max(Z_neg*E_z_n, 0.0) - min(Z_neg*E_z_s, 0.0))
-            bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
-            cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
-            
-            d = Su_neg(i, j)
-
-            ! calclate next n_neg(i) using SOR-method
-            n_neg(i, j) = (1.0d0 - omega_neg)*n_neg(i, j) &
-                    + omega_neg*(1.0/a)*(bi*n_neg(i+1, j) + ci*n_neg(i-1, j) &
-                                       + bj*n_neg(i, j+1) + cj*n_neg(i, j-1) + d)
-
-        end do 
-    end do
-    
-    ! boundary condition for z = 0 bottom
-    ! n_neg(:, 1) = n_neg(:, 2) ! (noiman boundary)
-    ! n_neg(:, 1) = 0.0d0
-    ! Table 1 of Yihua Ren
-    do i = 2, nr-1
-        if (E_z(i, 1) > 0.0) then
-            ! inflow flux from electric field
-            n_neg(i, 1) = n_neg(i, 2) + k_a*g_a(i, 1)*n_ele(i, 1)*dz/(K_neg*E_z(i, 1))
-        else
-            ! inflow flux equals zero
-            n_neg(i, 1) = n_neg(i, 2)*(1.0/(1.0 - K_neg*E_z(i, 1)*dz/D_neg(i, 1)))
-        end if
-    end do
-
-    ! boundary condition for z = nz top
-    ! n_neg(:, nz) = n_neg(:, nz-1) ! (noiman boundary)
-    ! zero flux on boundary
-    ! n_neg(:, nz) = n_neg(:, nz-1)*(1 - K_neg*dz*E_z(:, nz-1)/D_neg(:, nz-1))
-    ! Table 1 of Yihua Ren
-    do i = 2, nr-1
-        if (E_z(i, nz) > 0.0) then
-            ! inflow flux equals zero
-            n_neg(i, nz) = n_neg(i, nz-1)*(1.0/(1.0 + K_neg*E_z(i, nz)*dz/D_neg(i, nz)))
-        else
-            ! inflow flux from electric field
-            n_neg(i, nz) = n_neg(i, nz-1) - k_a*g_a(i, nz)*n_ele(i, nz)*dz/(K_neg*E_z(i, nz))
-        end if
-    end do
-
-    ! boundary condition for r = 0 center axis
-    ! n_neg(1, :) = n_neg(2, :) ! (noiman boundary)
-    ! Table 1 of Yihua Ren
-    do j = 2, nz-1
-        ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
-
-        ! update n_neg
-        n_neg(1, j) = (5.0*n_neg(2, j) - 4.0*n_neg(3, j) + n_neg(4, j))/2.0 &
-                    - (-ddVdr)*K_neg*(dr)**2/(2.0*D_neg(1, j))
-    end do
-
-
-    ! boundary condition for r = nr outside
-    ! n_neg(nr, :) = n_neg(nr-1, :) ! (noiman boundary)
-    do j = 2, nz-1
-        ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
-
-        ! update n_neg
-        n_neg(nr, j) = (5.0*n_neg(nr-1, j) - 4.0*n_neg(nr-2, j) + n_neg(nr-3, j))/2.0  &
-                    - (-ddVdr)*K_neg*(dr**2)/(2.0*D_neg(nr, j))
-    end do
-
-
-    error = error + maxval(abs(n_neg - n_neg_old))
-
-end subroutine solve_ion_neg_conservation
-
-subroutine solve_electron_conservation
-    use variables_module
-    implicit none
-
-    ! integer, intent(in) :: nz
-    ! double precision, intent(in) :: dz, dt
-    ! double precision, dimension(nz), intent(inout) :: n_plus, n_minus, V
-    integer :: i, j
-    ! double precision, dimension(nr, nz) :: n_ele_old 
-    double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: ddVdr ! 2nd derivetive of voltage
-    double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
-    double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
-
-    ! store old value
-    n_ele_old = n_ele
-
-    ! solve coservation equation
-    do i = 2, nr-1
-        do j = 2, nz-1
-            
-            ! prepare man value of r
-            r_p = distance_r(i, j)
-            r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
-            r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
-
-            ! prepare mean value of E
-            E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
-            E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
-            E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
-            E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
-
-            ! central difference for diffusion and source term
-            a = 2.0*D_ele(i, j)/(dz**2) + D_ele(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ele(i, j) 
-            bi = D_ele(i, j)/(r_p*dr**2)*r_e
-            ci = D_ele(i, j)/(r_p*dr**2)*r_w
-            bj = D_ele(i, j)/(dz**2)
-            cj = D_ele(i, j)/(dz**2)
-            
-            ! upwind difference for convection term r direction
-            a = a + (K_ele/(r_p*dr)) * (r_e*max(Z_ele*E_r_e, 0.0) - r_w*min(Z_ele*E_r_w, 0.0))
-            bi = bi - (K_ele/(r_p*dr)) * r_e * min(Z_ele*E_r_e, 0.0)
-            ci = ci + (K_ele/(r_p*dr)) * r_w * max(Z_ele*E_r_w, 0.0)
-
-            ! upwind difference for convection term z direction
-            a = a  + (K_ele/dz) * (max(Z_ele*E_z_n, 0.0) - min(Z_ele*E_z_s, 0.0))
-            bj = bj - (K_ele/dz) * min(Z_ele*E_z_n, 0.0)
-            cj = cj + (K_ele/dz) * max(Z_ele*E_z_s, 0.0)
-
-            d = Su_ele(i, j)
-
-            ! calclate next n_ele(i) using SOR-method
-            n_ele(i, j) = (1.0d0 - omega_ele)*n_ele(i, j) &
-                    + omega_ele*(1.0/a)*(bi*n_ele(i+1, j) + ci*n_ele(i-1, j) &
-                                       + bj*n_ele(i, j+1) + cj*n_ele(i, j-1) + d)
-
-        end do
-    end do
-    
-    ! boundary condition for z = 0 bottom
-    ! n_ele(:, 1) = n_ele(:, 2) ! (noiman boundary)
-    ! n_ele(:, 1) = 0.0d0
-    ! Table 1 of Yihua Ren
-    do i = 2, nr-1
-        if (E_z(i, 1) > 0.0) then
-            ! inflow flux from electric field
-            n_ele(i, 1) = n_ele(i, 2) + k_i*g_i(i, 1)*dz/(K_ele*E_z(i, 1))
-        else
-            ! inflow flux equals zero
-            n_ele(i, 1) = n_ele(i, 2)*(1.0/(1.0 - K_ele*E_z(i, 1)*dz/D_ele(i, 1)))
-        end if
-    end do
-
-    ! boundary condition for z = nz top
-    ! n_ele(:, nz) = n_ele(:, nz-1) ! (noiman boundary)
-    ! zero flux on boundary
-    ! n_ele(:, nz) = n_ele(:, nz-1)*(1 - K_ele*dz*E_z(:, nz-1)/D_ele(:, nz-1))
-    ! Table 1 of Yihua Ren
-    do i = 2, nr-1
-        if (E_z(i, nz) > 0.0) then
-            ! inflow flux equals zero
-            n_ele(i, nz) = n_ele(i, nz-1)*(1.0/(1.0 + K_ele*E_z(i, nz)*dz/D_ele(i, nz)))
-        else
-            ! inflow flux from electric field
-            n_ele(i, nz) = n_ele(i, nz-1) - k_i*g_i(i, nz)*dz/(K_ele*E_z(i, nz))
-        end if
-    end do
-
-    ! boundary condition for r = 0 center axis
-    ! n_ele(1, :) = n_ele(2, :) ! (noiman boundary)
-    ! Table 1 of Yihua Ren
-    do j = 2, nz-1
-        ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
-
-        ! update n_ele
-        n_ele(1, j) = (5.0*n_ele(2, j) - 4.0*n_ele(3, j) + n_ele(4, j))/2.0 &
-                    - (-ddVdr)*K_ele*(dr)**2/(2.0*D_ele(1, j))
-    end do
-
-
-    ! boundary condition for r = nr outside
-    ! n_ele(nr, :) = n_ele(nr-1, :) ! (noiman boundary)
-    do j = 2, nz-1
-        ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
-
-        ! update n_ele
-        n_ele(nr, j) = (5.0*n_ele(nr-1, j) - 4.0*n_ele(nr-2, j) + n_ele(nr-3, j))/2.0  &
-                    - (-ddVdr)*K_ele*(dr**2)/(2.0*D_ele(nr, j))
-    end do
-
-    error = error + maxval(abs(n_ele - n_ele_old))
-
-end subroutine solve_electron_conservation
+end subroutine solve_ion_conservation

@@ -26,11 +26,11 @@ program main
 
         call update_source_term()
 
-        call solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_pos, Su_pos, omega_pos)
+        call solve_ion_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_pos, Su_pos, omega_pos)
 
-        call solve_ion_neg_conservation()
-
-        call solve_electron_conservation()
+        call solve_ion_conservation(n_neg, n_neg_old, K_neg, Z_neg, D_neg, Sp_neg, Su_neg, omega_neg)
+        
+        call solve_ion_conservation(n_ele, n_ele_old, K_ele, Z_ele, D_ele, Sp_ele, Su_ele, omega_ele)
 
         print *, 'step ', k, ' error: ', error
 
