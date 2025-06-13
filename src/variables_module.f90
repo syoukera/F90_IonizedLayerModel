@@ -62,8 +62,8 @@ module variables_module
     
     double precision :: V_old(nr, nz)
     double precision :: n_pos_old (nr, nz)
-    double precision, dimension(nr, nz) :: n_neg_old 
-    double precision, dimension(nr, nz) :: n_ele_old 
+    double precision :: n_neg_old (nr, nz)
+    double precision :: n_ele_old (nr, nz)
 
     double precision :: g_i(nr, nz) ! spacial profile of ionization
     double precision :: g_a(nr, nz) ! spacial profile of attachement

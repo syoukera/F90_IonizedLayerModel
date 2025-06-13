@@ -26,7 +26,7 @@ program main
 
         call update_source_term()
 
-        call solve_ion_pos_conservation()
+        call solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_pos, Su_pos, omega_pos)
 
         call solve_ion_neg_conservation()
 

@@ -1,5 +1,7 @@
-subroutine solve_ion_pos_conservation
-    use variables_module
+subroutine solve_ion_pos_conservation(n_pos, n_pos_old, K_pos, Z_pos, D_pos, Sp_pos, Su_pos, omega_pos)
+    use variables_module, only: nr, nz, distance_r, E_r, E_z, dz, dr, &
+                                error, k_i, V
+                                
     implicit none
 
     ! integer, intent(in) :: nz
@@ -11,6 +13,15 @@ subroutine solve_ion_pos_conservation
     double precision :: ddVdr ! 2nd derivetive of voltage
     double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
     double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
+
+    double precision, intent(inout) :: n_pos(nr, nz)
+    double precision, intent(inout) :: n_pos_old(nr, nz)
+    double precision, intent(in) :: D_pos(nr, nz)
+    double precision, intent(in) :: Sp_pos(nr, nz)
+    double precision, intent(in) :: Su_pos(nr, nz)
+    double precision, intent(in) :: K_pos
+    double precision, intent(in) :: Z_pos
+    double precision, intent(in) :: omega_pos
 
     ! store old value
     n_pos_old = n_pos
@@ -68,7 +79,7 @@ subroutine solve_ion_pos_conservation
             n_pos(i, 1) = n_pos(i, 2)*(1.0/(1.0 + K_pos*E_z(i, 1)*dz/D_pos(i, 1)))
         else
             ! inflow flux from electric field
-            n_pos(i, 1) = n_pos(i, 2) - k_i*g_i(i, 1)*dz/(K_pos*E_z(i, 1))
+            n_pos(i, 1) = n_pos(i, 2) - Su_pos(i, 1)*dz/(K_pos*E_z(i, 1))
         end if
     end do
 
@@ -81,7 +92,7 @@ subroutine solve_ion_pos_conservation
     do i = 2, nr-1
         if (E_z(i, nz) > 0.0) then
             ! inflow flux from electric field
-            n_pos(i, nz) = n_pos(i, nz-1) + k_i*g_i(i, nz)*dz/(K_pos*E_z(i, nz))
+            n_pos(i, nz) = n_pos(i, nz-1) + Su_pos(i, nz)*dz/(K_pos*E_z(i, nz))
         else
             ! inflow flux equals zero
             n_pos(i, nz) = n_pos(i, nz-1)*(1.0/(1.0 - K_pos*E_z(i, nz)*dz/D_pos(i, nz)))
