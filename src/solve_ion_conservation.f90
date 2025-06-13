@@ -19,6 +19,10 @@ subroutine solve_ion_pos_conservation
     do i = 2, nr-1
         do j = 2, nz-1
 
+            ! calcualte source term
+            Sp_pos(i, j) = - k_r*n_ele(i, j)
+            Su_pos(i, j) = k_i*g_i(i, j)
+
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -31,7 +35,7 @@ subroutine solve_ion_pos_conservation
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
 
             ! central difference for diffusion and source term
-            a = 2.0*D_pos(i, j)/(dz**2) + D_pos(i, j)/(r_p*dr**2)*(r_e + r_w) + k_r*n_ele(i, j)
+            a = 2.0*D_pos(i, j)/(dz**2) + D_pos(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_pos(i, j)
             bi = D_pos(i, j)/(r_p*dr**2)*r_e
             ci = D_pos(i, j)/(r_p*dr**2)*r_w
             bj = D_pos(i, j)/(dz**2)
@@ -47,7 +51,7 @@ subroutine solve_ion_pos_conservation
             bj = bj - (K_pos/dz) * min(Z_pos*E_z_n, 0.0)
             cj = cj + (K_pos/dz) * max(Z_pos*E_z_s, 0.0)
 
-            d = k_i*g_i(i, j)
+            d = Su_pos(i, j)
 
             ! calclate next n_pos(i) using SOR-method
             n_pos(i, j) = (1.0d0 - omega_pos)*n_pos(i, j) &
