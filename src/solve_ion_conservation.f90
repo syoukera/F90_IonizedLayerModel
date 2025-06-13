@@ -9,8 +9,8 @@ subroutine solve_ion_pos_conservation
     ! double precision :: n_pos_old (nr, nz)
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
     double precision :: ddVdr ! 2nd derivetive of voltage
-    ! double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
-    ! double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
+    double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
+    double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
 
     ! store old value
     n_pos_old = n_pos
@@ -26,45 +26,26 @@ subroutine solve_ion_pos_conservation
             bj = D_pos(i, j)/dz**2
             cj = D_pos(i, j)/dz**2 
 
-            ! ! prepare man value of r
-            ! r_p = distance_r(i, j)
-            ! r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
-            ! r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
+            ! prepare man value of r
+            r_p = distance_r(i, j)
+            r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
+            r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
 
-            ! ! prepare mean value of E
-            ! E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
-            ! E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
-            ! E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
-            ! E_z_s = (E_z(i, j+1) + E_z(i, j))/2.0
-
-            ! ! upwind difference for convection term 
-            ! a = a &
-            !   + (K_pos/(r_p*dr)) * (r_e*max(Z_pos*E_r_e, 0.0) - r_w*min(Z_pos*E_r_w, 0.0)) &
-            !   + (K_pos/dz) * (max(Z_pos*E_z_n, 0.0) - min(Z_pos*E_z_s, 0.0))
-            ! bi = bi - (K_pos/(r_p*dr)) * (r_e*min(Z_pos*E_r_e, 0.0))
-            ! ci = ci + (K_pos/(r_p*dr)) * (r_w*max(Z_pos*E_r_w, 0.0))
-            ! bj = bj - (K_pos/dz) * min(Z_pos*E_z_n, 0.0)
-            ! cj = cj + (K_pos/dz) * max(Z_pos*E_z_s, 0.0)
-
+            ! prepare mean value of E
+            E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
+            E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
+            E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
+            E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
+            
             ! upwind difference for convection term r direction
-            if (E_r(i, j) .ge. 0.0) then
-                a = a + (K_pos/dr)*E_r(i, j)
-                ci = ci + (K_pos/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
-            else
-                a = a - (K_pos/dr)*E_r(i, j)
-                bi = bi - (K_pos/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
-            endif
+            a = a + (K_pos/(r_p*dr)) * (r_e*max(Z_pos*E_r_e, 0.0) - r_w*min(Z_pos*E_r_w, 0.0))
+            bi = bi - (K_pos/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
+            ci = ci + (K_pos/(r_p*dr)) * r_w * max(Z_pos*E_r_w, 0.0)
 
             ! upwind difference for convection term z direction
-            if (E_z(i, j) .ge. 0.0) then
-                ! calclate coefficients of discretised eq.
-                a = a + (K_pos/dz)*E_z(i, j)
-                cj = cj + (K_pos/dz)*E_z(i, j-1)
-            else
-                ! calclate coefficients of discretised eq.
-                a = a - (K_pos/dz)*E_z(i, j)
-                bj = bj - (K_pos/dz)*E_z(i, j+1)
-            endif
+            a = a  + (K_pos/dz) * (max(Z_pos*E_z_n, 0.0) - min(Z_pos*E_z_s, 0.0))
+            bj = bj - (K_pos/dz) * min(Z_pos*E_z_n, 0.0)
+            cj = cj + (K_pos/dz) * max(Z_pos*E_z_s, 0.0)
 
             d = k_i*g_i(i, j)
 
@@ -164,43 +145,6 @@ subroutine solve_ion_neg_conservation
             bj = D_neg(i, j)/dz**2
             cj = D_neg(i, j)/dz**2 
 
-
-            ! a = a &
-            !   + (K_neg/(r_p*dr)) * (r_e*max(Z_neg*E_r_e, 0.0) - r_w*min(Z_neg*E_r_w, 0.0)) &
-            !   + (K_neg/dz) * (max(Z_neg*E_z_n, 0.0) - min(Z_neg*E_z_s, 0.0))
-            ! bi = bi - (K_neg/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
-            ! ci = ci + (K_neg/(r_p*dr)) * r_w * max(Z_neg*E_r_w, 0.0)
-            ! bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
-            ! cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
-
-            ! ! upwind difference for convection term r direction
-            ! if (E_r(i, j) .le. 0.0) then
-            !     a = a - (K_neg/dr)*E_r(i, j)
-            !     ci = ci - (K_neg/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
-            ! else
-            !     a = a + (K_neg/dr)*E_r(i, j)
-            !     bi = bi + (K_neg/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
-            ! endif
-
-            ! ! upwind difference for convection term z direction
-            ! if (E_z(i, j) .le. 0.0) then
-            !     ! calclate coefficients of discretised eq.
-            !     a = a  - (K_neg/dz)*E_z(i, j)
-            !     cj = cj - (K_neg/dz)*E_z(i, j-1)
-            ! else
-            !     ! calclate coefficients of discretised eq.
-            !     a = a  + (K_neg/dz)*E_z(i, j)
-            !     bj = bj + (K_neg/dz)*E_z(i, j+1)
-            ! endif
-            
-            ! a = a &
-            !   + (K_neg/(r_p*dr)) * (r_e*max(Z_neg*E_r_e, 0.0) - r_w*min(Z_neg*E_r_w, 0.0)) &
-            !   + (K_neg/dz) * (max(Z_neg*E_z_n, 0.0) - min(Z_neg*E_z_s, 0.0))
-            ! bi = bi - (K_neg/(r_p*dr)) * r_e * min(Z_pos*E_r_e, 0.0)
-            ! ci = ci + (K_neg/(r_p*dr)) * r_w * max(Z_neg*E_r_w, 0.0)
-            ! bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
-            ! cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
-
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -221,16 +165,6 @@ subroutine solve_ion_neg_conservation
             a = a  + (K_neg/dz) * (max(Z_neg*E_z_n, 0.0) - min(Z_neg*E_z_s, 0.0))
             bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
             cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
-
-            ! ! upwind difference for convection term r direction
-            ! a = a + (K_neg/dr) * max(Z_neg*E_r(i, j), 0.0) - (K_neg/dr) * min(Z_neg*E_r(i, j), 0.0)
-            ! ci = ci + (K_neg/dr) * (r_w/distance_r(i, j)) * max(Z_neg*E_r_w, 0.0)
-            ! bi = bi - (K_neg/dr) * (r_e/distance_r(i, j)) * min(Z_neg*E_r_e, 0.0)
-
-            ! ! upwind difference for convection term z direction
-            ! a = a + (K_neg/dz) * max(Z_neg*E_z(i, j), 0.0) - (K_neg/dz) * min(Z_neg*E_z(i, j), 0.0)
-            ! bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
-            ! cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
             
             d = k_a*g_a(i, j)*n_ele(i, j)
 
@@ -311,8 +245,8 @@ subroutine solve_electron_conservation
     ! double precision, dimension(nr, nz) :: n_ele_old 
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
     double precision :: ddVdr ! 2nd derivetive of voltage
-    ! double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
-    ! double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
+    double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
+    double precision :: E_r_e, E_r_w, E_z_n, E_z_s ! mean value of E
 
     ! store old value
     n_ele_old = n_ele
@@ -328,45 +262,26 @@ subroutine solve_electron_conservation
             bj = D_ele(i, j)/dz**2
             cj = D_ele(i, j)/dz**2 
             
-            ! ! prepare man value of r
-            ! r_p = distance_r(i, j)
-            ! r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
-            ! r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
+            ! prepare man value of r
+            r_p = distance_r(i, j)
+            r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
+            r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
 
-            ! ! prepare mean value of E
-            ! E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
-            ! E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
-            ! E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
-            ! E_z_s = (E_z(i, j+1) + E_z(i, j))/2.0
-
-            ! ! upwind difference for convection term 
-            ! a = a &
-            !   + (K_ele/(r_p*dr)) * (r_e*max(Z_ele*E_r_e, 0.0) - r_w*min(Z_ele*E_r_w, 0.0)) &
-            !   + (K_ele/dz) * (max(Z_ele*E_z_n, 0.0) - min(Z_ele*E_z_s, 0.0))
-            ! bi = bi - (K_ele/(r_p*dr)) * (r_e*min(Z_ele*E_r_e, 0.0))
-            ! ci = ci + (K_ele/(r_p*dr)) * (r_w*max(Z_ele*E_r_w, 0.0))
-            ! bj = bj - (K_ele/dz) * min(Z_ele*E_z_n, 0.0)
-            ! cj = cj + (K_ele/dz) * max(Z_ele*E_z_s, 0.0)
-
-            ! upwind difference for convection term r direction
-            if (E_r(i, j) .le. 0.0) then
-                a = a - (K_ele/dr)*E_r(i, j)
-                ci = ci - (K_ele/dr)*(distance_r(i-1, j)/distance_r(i, j))*E_r(i-1, j)
-            else
-                a = a + (K_ele/dr)*E_r(i, j)
-                bi = bi + (K_ele/dr)*(distance_r(i+1, j)/distance_r(i, j))*E_r(i+1, j)
-            endif
+            ! prepare mean value of E
+            E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
+            E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
+            E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
+            E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
             
+            ! upwind difference for convection term r direction
+            a = a + (K_ele/(r_p*dr)) * (r_e*max(Z_ele*E_r_e, 0.0) - r_w*min(Z_ele*E_r_w, 0.0))
+            bi = bi - (K_ele/(r_p*dr)) * r_e * min(Z_ele*E_r_e, 0.0)
+            ci = ci + (K_ele/(r_p*dr)) * r_w * max(Z_ele*E_r_w, 0.0)
+
             ! upwind difference for convection term z direction
-            if (E_z(i, j) .le. 0.0) then
-                ! calclate coefficients of discretised eq.
-                a = a  - (K_ele/dz)*E_z(i, j)
-                cj = cj - (K_ele/dz)*E_z(i, j-1)
-            else
-                ! calclate coefficients of discretised eq.
-                a = a  + (K_ele/dz)*E_z(i, j)
-                bj = bj + (K_ele/dz)*E_z(i, j+1)
-            endif
+            a = a  + (K_ele/dz) * (max(Z_ele*E_z_n, 0.0) - min(Z_ele*E_z_s, 0.0))
+            bj = bj - (K_ele/dz) * min(Z_ele*E_z_n, 0.0)
+            cj = cj + (K_ele/dz) * max(Z_ele*E_z_s, 0.0)
 
             d = k_i*g_i(i, j)
 
