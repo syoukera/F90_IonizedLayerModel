@@ -2,7 +2,7 @@ module variables_module
     implicit none
 
     ! parameters for grid
-    integer, parameter :: nr = 101
+    integer, parameter :: nr = 201
     integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
@@ -172,10 +172,16 @@ module variables_module
                 ! calclate temperature
                 T(i, j) = 9.20603021e+02 * erf((distance_z(i, j) - flame_height) / 2.73035935e-04) + 1.21788749e+03
 
+                ! ! calculate diffusion coefficients
+                ! D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
+                ! D_neg(i, j) = K_neg*k_B*T(i, j)/q_e ! diffusion coefficients of negative ions [m2/s]
+                ! D_ele(i, j) = K_ele*k_B*T(i, j)/q_e ! diffusion coefficients of electrons [m2/s]
+
                 ! calculate diffusion coefficients
-                D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
-                D_neg(i, j) = K_neg*k_B*T(i, j)/q_e ! diffusion coefficients of negative ions [m2/s]
-                D_ele(i, j) = K_ele*k_B*T(i, j)/q_e ! diffusion coefficients of electrons [m2/s]
+                D_pos(i, j) = 5.0d-5 ! diffusion coefficients of positive ions [m2/s]
+                D_neg(i, j) = 5.0d-5  ! diffusion coefficients of negative ions [m2/s]
+                D_ele(i, j) = 6.89d-2 ! diffusion coefficients of electrons [m2/s]
+
 
             end do
         end do
@@ -266,8 +272,8 @@ module variables_module
 
         integer :: i, j
 
-        do i = 2, nr-1
-            do j = 2, nz-1
+        do i = 1, nr
+            do j = 1, nz
                 
                 ! calcualte source term for positive ion
                 Sp_pos(i, j) = - k_r*n_ele(i, j)
