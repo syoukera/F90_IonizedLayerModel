@@ -74,6 +74,14 @@ module variables_module
     double precision :: D_neg(nr, nz) ! diffusion coefficients of negative ions [m2/s]
     double precision :: D_ele(nr, nz) ! diffusion coefficients of electrons [m2/s]
     
+    ! array for source term
+    double precision :: Sp_pos(nr, nz) ! source term of positive ion dependent of n
+    double precision :: Su_pos(nr, nz) ! source term of positive ion independent of n
+    double precision :: Sp_neg(nr, nz) ! source term of negative ion dependent of n
+    double precision :: Su_neg(nr, nz) ! source term of negative ion independent of n
+    double precision :: Sp_ele(nr, nz) ! source term of electron dependent of n
+    double precision :: Su_ele(nr, nz) ! source term of electron independent of n
+    
     ! output variable arrays
     double precision :: J_r(nr, nz) ! current density [C/m2]
     double precision :: J_z(nr, nz) ! current density [C/m2]
@@ -253,6 +261,30 @@ module variables_module
         end do
 
     end subroutine update_electric_field
+
+    subroutine update_source_term()
+
+        integer :: i, j
+
+        do i = 2, nr-1
+            do j = 2, nz-1
+                
+                ! calcualte source term for positive ion
+                Sp_pos(i, j) = - k_r*n_ele(i, j)
+                Su_pos(i, j) = k_i*g_i(i, j)
+                
+                ! calcualte source term for negative ion
+                Sp_neg(i, j) = 0.0
+                Su_neg(i, j) = k_a*g_a(i, j)*n_ele(i, j)
+                
+                ! calcualte source term for electron
+                Sp_ele(i, j) = - k_r*n_pos(i, j) - k_a*g_a(i, j)
+                Su_ele(i, j) = k_i*g_i(i, j)
+
+            end do
+        end do
+
+    end subroutine update_source_term
 
     subroutine export_variables()
         implicit none

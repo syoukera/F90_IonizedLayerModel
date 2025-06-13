@@ -19,10 +19,6 @@ subroutine solve_ion_pos_conservation
     do i = 2, nr-1
         do j = 2, nz-1
 
-            ! calcualte source term
-            Sp_pos(i, j) = - k_r*n_ele(i, j)
-            Su_pos(i, j) = k_i*g_i(i, j)
-
             ! prepare man value of r
             r_p = distance_r(i, j)
             r_e = (distance_r(i+1, j)+ distance_r(i, j))/2.0
@@ -153,7 +149,7 @@ subroutine solve_ion_neg_conservation
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
             
             ! central difference for diffusion and source term
-            a = 2.0*D_neg(i, j)/(dz**2) + D_neg(i, j)/(r_p*dr**2)*(r_e + r_w) + k_r*n_neg(i, j)
+            a = 2.0*D_neg(i, j)/(dz**2) + D_neg(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_neg(i, j)
             bi = D_neg(i, j)/(r_p*dr**2)*r_e
             ci = D_neg(i, j)/(r_p*dr**2)*r_w
             bj = D_neg(i, j)/(dz**2)
@@ -169,7 +165,7 @@ subroutine solve_ion_neg_conservation
             bj = bj - (K_neg/dz) * min(Z_neg*E_z_n, 0.0)
             cj = cj + (K_neg/dz) * max(Z_neg*E_z_s, 0.0)
             
-            d = k_a*g_a(i, j)*n_ele(i, j)
+            d = Su_neg(i, j)
 
             ! calclate next n_neg(i) using SOR-method
             n_neg(i, j) = (1.0d0 - omega_neg)*n_neg(i, j) &
@@ -270,7 +266,7 @@ subroutine solve_electron_conservation
             E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
 
             ! central difference for diffusion and source term
-            a = 2.0*D_ele(i, j)/(dz**2) + D_ele(i, j)/(r_p*dr**2)*(r_e + r_w) + k_a*g_a(i, j)
+            a = 2.0*D_ele(i, j)/(dz**2) + D_ele(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ele(i, j) 
             bi = D_ele(i, j)/(r_p*dr**2)*r_e
             ci = D_ele(i, j)/(r_p*dr**2)*r_w
             bj = D_ele(i, j)/(dz**2)
@@ -286,7 +282,7 @@ subroutine solve_electron_conservation
             bj = bj - (K_ele/dz) * min(Z_ele*E_z_n, 0.0)
             cj = cj + (K_ele/dz) * max(Z_ele*E_z_s, 0.0)
 
-            d = k_i*g_i(i, j)
+            d = Su_ele(i, j)
 
             ! calclate next n_ele(i) using SOR-method
             n_ele(i, j) = (1.0d0 - omega_ele)*n_ele(i, j) &
