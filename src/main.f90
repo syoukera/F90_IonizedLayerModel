@@ -1,7 +1,9 @@
 program main
     use variables_module
+    use,intrinsic :: iso_fortran_env
     implicit none
     integer :: k
+    double precision :: time_begin_s,time_end_s
 
     call initialize_variables()
     ! call import_variables('output/m300V/omega_V0.5_omega_pos0.05/potential_1d_100000.dat')
@@ -12,6 +14,8 @@ program main
 
     ! ! export initial conditions
     ! call export_variables()
+    
+    call cpu_time(time_begin_s)
 
     ! iteration by SOR method
     do k = k_start, k_end
@@ -50,6 +54,9 @@ program main
     if (k == k_end) then
         print *, 'Did not converge after ', k_end, ' iterations.'
     end if
+    
+    call cpu_time(time_end_s)
+    print *,"Calculation time: ", time_end_s - time_begin_s,"sec"
 
     call calculate_output_variables()
 
