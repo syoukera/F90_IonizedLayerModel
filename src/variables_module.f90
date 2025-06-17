@@ -22,9 +22,8 @@ module variables_module
     double precision, parameter :: a_thickness  = 1.0d-3 ! thickness parameter [m]
 
     ! parameters for transport and reactions
-    double precision, parameter :: k_i = 3.84206640d+16 ! rate coeficient of ionization ions/m3/s
+    double precision, parameter :: k_i = 1.76780381d+21 ! rate coeficient of ionization ions/m3/s
     double precision, parameter :: k_r = 1.89301454d-13 ! rate coeficient of recombination m3/ions s
-    ! double precision, parameter :: k_r = 1.89d-13 ! rate coeficient of recombination m3/ions s
     double precision, parameter :: k_a = 4.73873934d+07 ! rate coeficient of attachment  1/s
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
@@ -39,14 +38,14 @@ module variables_module
 
     ! parameters for computation
     integer, parameter :: k_start = 1
-    integer, parameter :: k_end   = 1000000
+    integer, parameter :: k_end   = 100000
     integer, parameter :: k_step  = 100000
-    double precision, parameter :: tolerance = 2.0d-6
+    double precision, parameter :: tolerance = 1.0d-10
 
-    double precision, parameter :: omega_V   = 0.5d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 0.05d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 0.05d0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_ele = 0.05d0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_V   = 2.0 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 1e-20 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 5e-20 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_ele = 3d-20 ! relaxation coefficient (1 < omega < 2)
 
     double precision :: error
 
@@ -104,12 +103,12 @@ module variables_module
                 distance_r(i, j) = (i-1) * dr 
                 distance_z(i, j) = (j-1) * dz
 
-                ! n_pos(i, j) = 0.0d0
-                n_pos(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                ! n_neg(i, j) = 0.0d0
-                n_neg(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                ! n_ele(i, j) = 0.0d0
-                n_ele(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
+                ! ! n_pos(i, j) = 0.0d0
+                ! n_pos(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
+                ! ! n_neg(i, j) = 0.0d0
+                ! n_neg(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
+                ! ! n_ele(i, j) = 0.0d0
+                ! n_ele(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
 
             end do
         end do
@@ -123,8 +122,8 @@ module variables_module
         ! set initial conditions of V
         do i = 1, nr
             do j = 2, nz-1
-                V(i, j) = 0.0d0
-                ! V(i, j) = V_start + (V_end - V_start)*((j-1.0)/(nz-1.0))
+                ! V(i, j) = 0.0d0
+                V(i, j) = V_start + (V_end - V_start)*((j-1.0)/(nz-1.0))
             end do
         end do
 
@@ -200,6 +199,9 @@ module variables_module
                 ! D_neg(i, j) = 5.0d-5  ! diffusion coefficients of negative ions [m2/s]
                 ! D_ele(i, j) = 6.89d-2 ! diffusion coefficients of electrons [m2/s]
 
+                n_pos(i, j) = 1.0d10*g_i(i, j)
+                n_neg(i, j) = 1.0d10*g_i(i, j)
+                n_ele(i, j) = 1.0d10*g_i(i, j)
 
             end do
         end do
