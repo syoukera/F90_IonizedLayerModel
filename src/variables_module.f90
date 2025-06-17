@@ -24,6 +24,7 @@ module variables_module
     ! parameters for transport and reactions
     double precision, parameter :: k_i = 3.84206640d+16 ! rate coeficient of ionization ions/m3/s
     double precision, parameter :: k_r = 1.89301454d-13 ! rate coeficient of recombination m3/ions s
+    ! double precision, parameter :: k_r = 1.89d-13 ! rate coeficient of recombination m3/ions s
     double precision, parameter :: k_a = 4.73873934d+07 ! rate coeficient of attachment  1/s
     double precision, parameter :: K_pos = 2.9d-4 ! mobility of positive ions [m2/s V]
     double precision, parameter :: K_neg = 2.9d-4 ! mobility of negative ions [m2/s V]
@@ -136,8 +137,8 @@ module variables_module
 
     subroutine calculate_reaction_profile()
         
-        integer :: i, j
-        double precision :: flame_height, distance_flame, r_norm
+        integer :: i, j, k
+        double precision :: flame_height, distance_flame, distance_nearest, r_norm
         integer :: i_edge
 
         ! initial value of flame edge
@@ -146,23 +147,40 @@ module variables_module
         ! solve coservation equation
         do i = 1, nr
 
-            ! get normalized r distance
-            r_norm = distance_r(i, 1)/length_r
-
-            ! calculate flame height from fitting eqations in Logistic function
-            ! flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
-            flame_height = length_z*(-4.195 * exp(-(r_norm*25.0)**2/(2*4.054**2)) + 18.812)/25.0
-
             do j = 1, nz
 
-                ! calculated distance to flame height
-                distance_flame = distance_z(i, j) - flame_height
+                ! initialize distance as larger length
+                distance_nearest = length_z
 
+                ! find nearest distance to flame
+                do k = 1, nr
+                
+                    ! get normalized r distance of referenced point
+                    r_norm = distance_r(k, 1)/length_r
+
+                    ! calculate flame height from fitting eqations in Logistic function
+                    ! flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
+                    flame_height = length_z*(-4.195 * exp(-(r_norm*25.0)**2/(2*4.054**2)) + 18.812)/25.0
+
+                    ! calculated distance to flame height
+                    distance_flame = sqrt((distance_z(i, j) - flame_height)**2.0 + (distance_r(i, j) - distance_r(k ,1))**2.0)
+
+                    ! save narest distance
+                    distance_nearest = min(distance_flame, distance_nearest)
+
+                end do
+                    
+                ! get normalized r distance of current point
+                r_norm = distance_r(i, 1)/length_r
+
+                ! calculate flame height from fitting eqations in Logistic function
+                ! flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
+                flame_height = length_z*(-4.195 * exp(-(r_norm*25.0)**2/(2*4.054**2)) + 18.812)/25.0
     
                 ! calclate spacial profile of ionization
                 ! g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
                 ! fitting to 1D PREMIX of Yuhia Ren
-                g_i(i, j) = exp(- (distance_flame)**2/6.554209032d-09)
+                g_i(i, j) = exp(- (distance_nearest)**2/6.554209032d-09)
 
                 ! calclate spacial profile of attachment
                 ! fitting to 1D PREMIX of Yuhia Ren
@@ -172,15 +190,15 @@ module variables_module
                 ! calclate temperature
                 T(i, j) = 9.20603021e+02 * erf((distance_z(i, j) - flame_height) / 2.73035935e-04) + 1.21788749e+03
 
-                ! ! calculate diffusion coefficients
-                ! D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
-                ! D_neg(i, j) = K_neg*k_B*T(i, j)/q_e ! diffusion coefficients of negative ions [m2/s]
-                ! D_ele(i, j) = K_ele*k_B*T(i, j)/q_e ! diffusion coefficients of electrons [m2/s]
-
                 ! calculate diffusion coefficients
-                D_pos(i, j) = 5.0d-5 ! diffusion coefficients of positive ions [m2/s]
-                D_neg(i, j) = 5.0d-5  ! diffusion coefficients of negative ions [m2/s]
-                D_ele(i, j) = 6.89d-2 ! diffusion coefficients of electrons [m2/s]
+                D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
+                D_neg(i, j) = K_neg*k_B*T(i, j)/q_e ! diffusion coefficients of negative ions [m2/s]
+                D_ele(i, j) = K_ele*k_B*T(i, j)/q_e ! diffusion coefficients of electrons [m2/s]
+
+                ! ! calculate diffusion coefficients
+                ! D_pos(i, j) = 5.0d-5 ! diffusion coefficients of positive ions [m2/s]
+                ! D_neg(i, j) = 5.0d-5  ! diffusion coefficients of negative ions [m2/s]
+                ! D_ele(i, j) = 6.89d-2 ! diffusion coefficients of electrons [m2/s]
 
 
             end do
