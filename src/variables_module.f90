@@ -2,7 +2,7 @@ module variables_module
     implicit none
 
     ! parameters for grid
-    integer, parameter :: nr = 201
+    integer, parameter :: nr = 101
     integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
@@ -38,14 +38,14 @@ module variables_module
 
     ! parameters for computation
     integer, parameter :: k_start = 1
-    integer, parameter :: k_end   = 100000
+    integer, parameter :: k_end   = 10000000
     integer, parameter :: k_step  = 100000
     double precision, parameter :: tolerance = 1.0d-10
 
-    double precision, parameter :: omega_V   = 2.0 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_pos = 1e-20 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_neg = 5e-20 ! relaxation coefficient (1 < omega < 2)
-    double precision, parameter :: omega_ele = 3d-20 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_V   = 0.5 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_pos = 0.05 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_neg = 0.05 ! relaxation coefficient (1 < omega < 2)
+    double precision, parameter :: omega_ele = 0.05 ! relaxation coefficient (1 < omega < 2)
 
     double precision :: error
 
@@ -315,21 +315,14 @@ module variables_module
     subroutine export_variables()
         implicit none
         integer :: i, j
-        ! character(len=60) :: filename
-        
-        ! ! calculate current density
-        ! do i = 2, nz-1
 
-        !     current_density(i) = (D_pos*((n_pos(i+1)-n_pos(i-1))/(2.0*dz)) - K_pos*n_pos(i)*E(i))*(+q_e) &
-        !                        + (D_pos*((n_neg(i+1)-n_pos(i-1))/(2.0*dz)) + K_neg*n_neg(i)*E(i))*(-q_e) &
-        !                        + (D_ele*((n_ele(i+1)-n_pos(i-1))/(2.0*dz)) + K_ele*n_ele(i)*E(i))*(-q_e)
-
-        ! end do
-
-        
-        ! ! create a unique filename using the integer i
-        ! write(filename, '("potential_1d_", I0, ".dat")') k
-        ! print *, "Output to file: ", filename
+        ! Save 2D arrays as binary files for later Fortran reading (all in one file)
+        open(unit=10, file='output/variables_all.bin', form='unformatted', access='stream', status='replace')
+        write(10) V
+        write(10) n_pos
+        write(10) n_neg
+        write(10) n_ele
+        close(10)
 
         open(unit=1, file='output/grid_r.dat', status='replace')
         do j = nz, 1, -1
@@ -428,5 +421,23 @@ module variables_module
         close(1)
 
     end subroutine export_variables
+
+    subroutine import_variables(foldername)
+        implicit none
+        character(len=*), intent(in) :: foldername
+        character(len=256) :: filepath
+
+        ! Compose the file path using the provided folder name
+        write(filepath, '(A,"/variables_all.bin")') trim(foldername)
+
+        ! Read 2D arrays from binary file
+        open(unit=10, file=filepath, form='unformatted', access='stream', status='old')
+        read(10) V
+        read(10) n_pos
+        read(10) n_neg
+        read(10) n_ele
+        close(10)
+
+    end subroutine import_variables
 
 end module variables_module

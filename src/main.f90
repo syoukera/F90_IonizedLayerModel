@@ -6,14 +6,13 @@ program main
     double precision :: time_begin_s,time_end_s
 
     call initialize_variables()
-    ! call import_variables('output/m300V/omega_V0.5_omega_pos0.05/potential_1d_100000.dat')
-    
-    ! call load_flame_height()
 
     call calculate_reaction_profile()
 
-    ! ! export initial conditions
-    ! call export_variables()
+    ! restart from solution
+    if (.true.) then
+        call import_variables('output_ki3.84e16')
+    end if 
     
     call cpu_time(time_begin_s)
 
