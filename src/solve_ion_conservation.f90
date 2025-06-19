@@ -1,5 +1,5 @@
 subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion, Su_ion, omega_ion)
-    use variables_module, only: nr, nz, dz, dr, distance_r, E_r, E_z, V, error 
+    use variables_module, only: nr, nz, dz, dr, distance_r, V, error 
                                 
     implicit none
 
@@ -35,10 +35,10 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
             r_w = (distance_r(i-1, j)+ distance_r(i, j))/2.0
 
             ! prepare mean value of E
-            E_r_e = (E_r(i+1, j) + E_r(i, j))/2.0
-            E_r_w = (E_r(i-1, j) + E_r(i, j))/2.0
-            E_z_n = (E_z(i, j+1) + E_z(i, j))/2.0
-            E_z_s = (E_z(i, j-1) + E_z(i, j))/2.0
+            E_r_e = - (V(i+1, j) - V(i  , j))/dr
+            E_r_w = - (V(i  , j) - V(i-1, j))/dr
+            E_z_n = - (V(i, j+1) - V(i, j  ))/dz
+            E_z_s = - (V(i, j  ) - V(i, j-1))/dz
 
             ! central difference for diffusion and source term
             a = 2.0*D_ion(i, j)/(dz**2) + D_ion(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ion(i, j)
@@ -73,12 +73,15 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
     ! n_ion(:, 1) = 0.0d0
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (Z_ion*E_z(i, 1) > 0.0) then
+
+        E_z_n = - (V(i, 2) - V(i, 1))/dz
+
+        if (Z_ion*E_z_n > 0.0) then
             ! inflow flux equals zero
-            n_ion(i, 1) = n_ion(i, 2)*(1.0/(1.0 + K_ion*Z_ion*E_z(i, 1)*dz/D_ion(i, 1)))
+            n_ion(i, 1) = n_ion(i, 2)*(1.0/(1.0 + K_ion*Z_ion*E_z_n*dz/D_ion(i, 1)))
         else
             ! inflow flux from electric field
-            n_ion(i, 1) = n_ion(i, 2) - Su_ion(i, 1)*dz/(K_ion*Z_ion*E_z(i, 1))
+            n_ion(i, 1) = n_ion(i, 2) - Su_ion(i, 1)*dz/(K_ion*Z_ion*E_z_n)
         end if
     end do
     
@@ -88,12 +91,15 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
     ! n_ion(:, nz) = n_ion(:, nz-1)*(1 + K_ion*dz*E_z(:, nz-1)/D_ion(:, nz-1))
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        if (Z_ion*E_z(i, nz) > 0.0) then
+        
+        E_z_s = - (V(i, nr) - V(i, nr-1))/dz
+    
+        if (Z_ion*E_z_s > 0.0) then
             ! inflow flux from electric field
-            n_ion(i, nz) = n_ion(i, nz-1) + Su_ion(i, nz)*dz/(K_ion*Z_ion*E_z(i, nz))
+            n_ion(i, nz) = n_ion(i, nz-1) + Su_ion(i, nz)*dz/(K_ion*Z_ion*E_z_s)
         else
             ! inflow flux equals zero
-            n_ion(i, nz) = n_ion(i, nz-1)*(1.0/(1.0 - K_ion*Z_ion*E_z(i, nz)*dz/D_ion(i, nz)))
+            n_ion(i, nz) = n_ion(i, nz-1)*(1.0/(1.0 - K_ion*Z_ion*E_z_s*dz/D_ion(i, nz)))
         end if
     end do
 
