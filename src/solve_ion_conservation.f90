@@ -44,12 +44,19 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
             ddVdr = (V(i+1, j) - 2.0*V(i, j) + V(i-1, j))/(dr**2)
             ddVdz = (V(i, j+1) - 2.0*V(i, j) + V(i, j-1))/(dz**2)
 
-            ! central difference for diffusion and source term
-            a = 2.0*D_ion(i, j)/(dz**2) + D_ion(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ion(i, j)
-            bi = D_ion(i, j)/(r_p*dr**2)*r_e
-            ci = D_ion(i, j)/(r_p*dr**2)*r_w
-            bj = D_ion(i, j)/(dz**2)
-            cj = D_ion(i, j)/(dz**2)
+            ! ! central difference for diffusion and source term
+            ! a = 2.0*D_ion(i, j)/(dz**2) + D_ion(i, j)/(r_p*dr**2)*(r_e + r_w) - Sp_ion(i, j)
+            ! bi = D_ion(i, j)/(r_p*dr**2)*r_e
+            ! ci = D_ion(i, j)/(r_p*dr**2)*r_w
+            ! bj = D_ion(i, j)/(dz**2)
+            ! cj = D_ion(i, j)/(dz**2)
+
+            ! central difference for diffusion and source term (takuma)
+            a = 4.0*D_ion(i, j)/(dz**2) - Sp_ion(i, j)
+            bi = D_ion(i, j)*(1.0/(dr**2) + 1.0/(2.0*r_p*dr))
+            ci = D_ion(i, j)*(1.0/(dr**2) - 1.0/(2.0*r_p*dr))
+            bj = D_ion(i, j)/(dr**2)
+            cj = D_ion(i, j)/(dr**2)
 
             ! upwind difference for convection term r direction
             a = a + (K_ion/(r_p*dr)) * (r_e*max(Z_ion*E_r_e, 0.0) - r_w*min(Z_ion*E_r_w, 0.0)) &
