@@ -10,9 +10,7 @@ program main
     call calculate_reaction_profile()
 
     ! restart from solution
-    if (.true.) then
-        call import_variables('output_ki3.84e16')
-    end if 
+    ! call import_variables('output_ki1.76e18')
     
     call cpu_time(time_begin_s)
 
