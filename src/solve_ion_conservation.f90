@@ -9,7 +9,7 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
     integer :: i, j
     ! double precision :: n_ion_old (nr, nz)
     double precision :: a, bi, bj, ci, cj, d ! coefficients of discretised eq.
-    double precision :: ddVdr, ddVdz ! 2nd derivetive of voltage
+    double precision :: ddVdr, dVdr, ddVdz, dVdz ! 2nd derivetive of voltage
     double precision :: r_p, r_e, r_w ! r, z distance on center and mean value for North, South, West, East
     double precision :: E_r_e, E_r_w, E_z_n, E_z_s, E_r_p ! mean value of E
 
@@ -81,57 +81,65 @@ subroutine solve_ion_conservation(n_ion, n_ion_old, K_ion, Z_ion, D_ion, Sp_ion,
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
 
-        E_z_n = - (V(i, 2) - V(i, 1))/dz
+        dVdz = (-3.0*V(i, 1) + 4.0*V(i, 2) - V(i, 3))/(2.0*dz)
 
-        if (Z_ion*E_z_n > 0.0) then
+        if (- Z_ion*dVdz > 0.0) then
             ! inflow flux equals zero
-            n_ion(i, 1) = n_ion(i, 2)*(1.0/(1.0 + K_ion*Z_ion*E_z_n*dz/D_ion(i, 1)))
+            n_ion(i, 1) = (4.0*n_ion(i, 2) - n_ion(i, 3))/(3.0 - (2.0*K_ion*Z_ion*dz/D_ion(i, 1))*dVdz)
         else
             ! inflow flux from electric field
-            n_ion(i, 1) = n_ion(i, 2) - Su_ion(i, 1)*dz/(K_ion*Z_ion*E_z_n)
+            n_ion(i, 1) = n_ion(i, 2)
         end if
+
     end do
-    
+
     ! boundary condition for z = nz top
     ! n_ion(:, nz) = n_ion(:, nz-1) ! (noiman boundary)
     ! zero flux on boundary
     ! n_ion(:, nz) = n_ion(:, nz-1)*(1 + K_ion*dz*E_z(:, nz-1)/D_ion(:, nz-1))
     ! Table 1 of Yihua Ren
     do i = 2, nr-1
-        
-        E_z_s = - (V(i, nr) - V(i, nr-1))/dz
-    
-        if (Z_ion*E_z_s > 0.0) then
+
+        dVdz = (V(i, nz-2) - 4.0*V(i, nz-1) + 3.0*V(i, nz))/(2.0*dz)
+
+        if (- Z_ion*dVdz > 0.0) then
             ! inflow flux from electric field
-            n_ion(i, nz) = n_ion(i, nz-1) + Su_ion(i, nz)*dz/(K_ion*Z_ion*E_z_s)
+            n_ion(i, nz) = n_ion(i, nz-1)
         else
             ! inflow flux equals zero
-            n_ion(i, nz) = n_ion(i, nz-1)*(1.0/(1.0 - K_ion*Z_ion*E_z_s*dz/D_ion(i, nz)))
+            n_ion(i, nz) = (4.0*n_ion(i, nz-1) - n_ion(i, nz-2))/(3.0 + (2.0*K_ion*Z_ion*dz/D_ion(i, nz))*dVdz)
         end if
+
     end do
 
     ! boundary condition for r = 0 center axis
     ! n_ion(1, :) = n_ion(2, :) ! (noiman boundary)
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
-        ! 2nd derivetive of voltage
+
+        dVdr = (-3.0*V(1, j) + 4.0*V(2, j) - V(3, j))/(2.0*dr)
         ddVdr = (2.0*V(1, j) - 5.0*V(2, j) + 4.0*V(3, j) - V(4, j))/(dr**2)
 
-        ! update n_ion
-        n_ion(1, j) = (5.0*n_ion(2, j) - 4.0*n_ion(3, j) + n_ion(4, j))/2.0 &
-                    + (-ddVdr)*K_ion*Z_ion*(dr)**2/(2.0*D_ion(1, j))
-    end do
+        n_ion(1, j) = D_ion(1, j)*(-5.0*n_ion(2, j) + 4.0*n_ion(3, j) - n_ion(4, j))/(dr**2) &
+                    + K_ion*Z_ion*(4.0*n_ion(2, j) - n_ion(3, j))/(2.0*dr)
+
+        n_ion(1, j) = n_ion(1, j)/(-2.0*D_ion(1, j)/(dr**2) - K_ion*Z_ion*(- 3.0/(2.0*dr)*dVdr + ddVdr))
+
+    end do 
 
     ! boundary condition for r = nr outside
     ! n_ion(nr, :) = n_ion(nr-1, :) ! (noiman boundary)
     ! Table 1 of Yihua Ren
     do j = 2, nz-1
-        ! 2nd derivetive of voltage
-        ddVdr = (2.0*V(nr, j)- 5.0*V(nr-1, j) + 4.0*V(nr-2, j)  -V(nr-3, j))/(dr**2)
 
-        ! update n_ion
-        n_ion(nr, j) = (5.0*n_ion(nr-1, j) - 4.0*n_ion(nr-2, j) + n_ion(nr-3, j))/2.0  &
-                    + (-ddVdr)*K_ion*Z_ion*(dr**2)/(2.0*D_ion(nr, j))
+        dVdr = (V(nr-2, j) - 4.0*V(nr-1, j) + 3.0*V(nr, j))/(2.0*dr)
+        ddVdr = (-V(nr-3, j) + 4.0*V(nr-2, j) - 5.0*V(nr-1, j) + 2.0*V(nr, j))/(dr**2)
+
+        n_ion(nr, j) = D_ion(nr, j)*(-n_ion(nr-3, j) + 4.0*n_ion(nr-2, j) - 5.0*n_ion(nr-1, j))/(dr**2) &
+                     + K_ion*Z_ion*(n_ion(nr-2, j) - 4.0*n_ion(nr-1, j))/(2.0*dr)
+
+        n_ion(nr, j) = n_ion(nr, j)/(- 2.0*D_ion(nr, j)/(dr**2) - K_ion*Z_ion*(3.0/(2.0*dr)*dVdr + ddVdr))
+
     end do
 
     error = error + maxval(abs(n_ion - n_ion_old))
