@@ -26,6 +26,12 @@ subroutine solve_poisson_equation
 
         end do
     end do
+    
+    ! set boundary of z on V
+    do i = 1, nr
+        V(i, 1) = V_start
+        V(i, nz) = V_end
+    end do
 
     ! center axis (i = 1) 
     V(1, :) = V(2, :) ! (noiman boundary)
