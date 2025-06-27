@@ -175,11 +175,16 @@ module variables_module
                 ! calculate flame height from fitting eqations in Logistic function
                 ! flame_height = length_z*(7.374e-01/(1 + exp(7.634e+00*(r_norm-8.732e-01))) - 1.542e-01)
                 flame_height = length_z*(-4.195 * exp(-(r_norm*25.0)**2/(2*4.054**2)) + 18.812)/25.0
+                ! rounding to nearest point on z
+                flame_height = floor(flame_height/dz)*dz
+                ! calculate distance_flame on z direaction
+                distance_flame = abs(distance_z(i, j) - flame_height)
+
     
                 ! calclate spacial profile of ionization
                 ! g_i(i, j) = exp(- (pi*distance_flame**2)/a_thickness**2)
                 ! fitting to 1D PREMIX of Yuhia Ren
-                g_i(i, j) = exp(- (distance_nearest)**2/6.554209032d-09)
+                g_i(i, j) = exp(- (distance_flame)**2/6.554209032d-09)
 
                 ! calclate spacial profile of attachment
                 ! fitting to 1D PREMIX of Yuhia Ren
