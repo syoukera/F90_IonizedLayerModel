@@ -103,11 +103,11 @@ module variables_module
                 distance_r(i, j) = (i-1) * dr 
                 distance_z(i, j) = (j-1) * dz
 
-                ! ! n_pos(i, j) = 0.0d0
+                n_pos(i, j) = 0.0d0
                 ! n_pos(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                ! ! n_neg(i, j) = 0.0d0
+                n_neg(i, j) = 0.0d0
                 ! n_neg(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
-                ! ! n_ele(i, j) = 0.0d0
+                n_ele(i, j) = 0.0d0
                 ! n_ele(i, j) = 1.0d13*max(exp(- pi*(distance_z(i, j) - height_flame)**2/a_thickness**2), 0.0)
 
             end do
@@ -199,9 +199,9 @@ module variables_module
                 ! D_neg(i, j) = 5.0d-5  ! diffusion coefficients of negative ions [m2/s]
                 ! D_ele(i, j) = 6.89d-2 ! diffusion coefficients of electrons [m2/s]
 
-                n_pos(i, j) = 1.0d10*g_i(i, j)
-                n_neg(i, j) = 1.0d10*g_i(i, j)
-                n_ele(i, j) = 1.0d10*g_i(i, j)
+                ! n_pos(i, j) = 1.0d10*g_i(i, j)
+                ! n_neg(i, j) = 1.0d10*g_i(i, j)
+                ! n_ele(i, j) = 1.0d10*g_i(i, j)
 
             end do
         end do
@@ -274,7 +274,7 @@ module variables_module
         end do
 
         ! boundary conditions on r axis
-        do i = 2, nz-1
+        do j = 2, nz-1
 
             ! lower boundary
             E_r(1, j) = -(V(2, j) - V(1, j)) / dr
