@@ -1,7 +1,7 @@
 # コンパイラとフラグの設定
 FC = gfortran
-FFLAGS = -O2 -Wall -Jsrc
-# FFLAGS = -Wall -Jsrc -fcheck=bounds -g -O0
+FFLAGS = -O2 -Wall -Jsrc -fopenmp
+# FFLAGS = -Wall -Jsrc -fcheck=bounds -g -O0 -fopenmp
 
 # ターゲット名とオブジェクトファイル
 TARGET = ionized_layer

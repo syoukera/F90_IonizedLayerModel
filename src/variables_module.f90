@@ -2,7 +2,7 @@ module variables_module
     implicit none
 
     ! parameters for grid
-    integer, parameter :: nr = 101
+    integer, parameter :: nr = 401
     integer, parameter :: nz = nr
 
     ! Note: dr = dz must be preserved in current imprementation    
@@ -37,15 +37,19 @@ module variables_module
     double precision, parameter :: V_end        = -1.2d3 ! voltage for end point [V]
 
     ! parameters for computation
-    integer, parameter :: k_start = 1
-    integer, parameter :: k_end   = 10000000
-    integer, parameter :: k_step  = 100000
+    integer :: step
+    integer, parameter :: step_start = 1
+    integer, parameter :: step_end   = 1000
+    integer, parameter :: step_step  = 100000
     double precision, parameter :: tolerance = 1.0d-10
 
     double precision, parameter :: omega_V   = 0.5 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_pos = 0.05 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_neg = 0.05 ! relaxation coefficient (1 < omega < 2)
     double precision, parameter :: omega_ele = 0.05 ! relaxation coefficient (1 < omega < 2)
+
+    integer, parameter :: case_convection = 2 ! 1 for upwind, 2 for SG method
+    integer, parameter :: case_poison = 1 ! 1 for direct, 2 for linearized way
 
     double precision :: error
 
@@ -92,7 +96,12 @@ module variables_module
     double precision :: normalized_flame_height(nr)
     double precision :: normalized_intensity(nr)
 
-    contains
+    ! モジュール変数またはサブルーチン内での定義
+    double precision, save :: ddVdz_prev(nr, nz) = 0.0d0
+    double precision, save :: ddVdr_prev(nr, nz) = 0.0d0
+    double precision       :: alpha_E = 0.05d0  ! 電界緩和係数 (非常に小さく設定)                            
+
+contains
 
     subroutine initialize_variables()
         integer :: i, j
@@ -193,6 +202,7 @@ module variables_module
 
                 ! calclate temperature
                 T(i, j) = 9.20603021e+02 * erf((distance_z(i, j) - flame_height) / 2.73035935e-04) + 1.21788749e+03
+                ! T(i, j) = 2000.0 ! to make debye length larger
 
                 ! calculate diffusion coefficients
                 D_pos(i, j) = K_pos*k_B*T(i, j)/q_e ! diffusion coefficients of positive ions [m2/s]
@@ -292,6 +302,31 @@ module variables_module
         end do
 
     end subroutine update_electric_field
+
+    subroutine update_ddV()
+    
+        integer :: i, j
+        double precision :: ddVdr_raw, ddVdz_raw, ddVdr_eff, ddVdz_eff
+
+        do i = 2, nr-1
+            do j = 2, nz-1
+
+                ! 現在の電位 V から計算された生の勾配を ddVdz_raw とすると
+                ddVdr_raw = (V(i+1, j) - 2.0*V(i, j) + V(i-1, j))/(dr**2)
+                ddVdz_raw = (V(i, j+1) - 2.0*V(i, j) + V(i, j-1))/(dz**2)
+
+                ! 下方緩和を適用して、密度計算に使う "実効的な" 勾配を求める
+                ddVdr_eff = (1.0d0 - alpha_E) * ddVdr_prev(i, j) + alpha_E * ddVdr_raw
+                ddVdz_eff = (1.0d0 - alpha_E) * ddVdz_prev(i, j) + alpha_E * ddVdz_raw
+
+                ! 後のために prev を更新しておく
+                ddVdr_prev(i, j) = ddVdr_eff
+                ddVdz_prev(i, j) = ddVdz_eff
+
+            end do
+        end do
+
+    end subroutine update_ddV
 
     subroutine update_source_term()
 
